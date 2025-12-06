@@ -1,36 +1,54 @@
 const mongoose = require('mongoose');
 
 const planSchema = new mongoose.Schema({
-    title: {
+    name: {
         type: String,
-        required: true
+        required: true,
     },
-    type: {
+    description: {
         type: String,
-        enum: ['workout', 'diet'],
-        required: true
+        required: true,
     },
-    description: String,
-    creator: {
-        type: mongoose.Schema.Types.ObjectId, // Admin or Trainer
-        ref: 'User',
-        required: true
+    price: {
+        type: Number,
+        required: true,
     },
-    assignedTo: {
-        type: mongoose.Schema.Types.ObjectId, // Member (optional, if private plan)
-        ref: 'User'
+    currency: {
+        type: String,
+        default: 'pkr',
     },
-    content: {
-        type: String, // Can be text or a URL to a file/video
-        required: true
+    interval: {
+        type: String,
+        enum: ['month', 'year'],
+        required: true,
     },
-    isPublic: {
+    stripePriceId: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    stripeProductId: {
+        type: String,
+        required: true,
+    },
+    features: {
+        type: [String],
+        default: [],
+    },
+    isActive: {
         type: Boolean,
-        default: true // Public means accessible to all members
-    }
+        default: true,
+    },
+    classesPerMonth: {
+        type: Number,
+        default: 0, // 0 = unlimited
+    },
 }, {
-    timestamps: true
+    timestamps: true,
 });
+
+// Index for active plans
+planSchema.index({ isActive: 1 });
 
 const Plan = mongoose.model('Plan', planSchema);
 

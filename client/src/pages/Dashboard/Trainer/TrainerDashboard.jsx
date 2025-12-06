@@ -1,0 +1,102 @@
+import React, { useState, useEffect } from 'react';
+import { classService } from '../../../services/classService';
+import { useAuth } from '../../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+
+const TrainerDashboard = () => {
+    const { user } = useAuth();
+    const [upcomingClasses, setUpcomingClasses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const data = await classService.getClasses({ trainerId: user._id, status: 'scheduled' });
+
+            // Filter future classes
+            const upcoming = data.filter(c => new Date(c.startTime) > new Date())
+                .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+            setUpcomingClasses(upcoming);
+        } catch (error) {
+            console.error("Failed to load dashboard", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6 animate-fade-in">
+            <h1 className="text-3xl font-bold text-gray-900">Trainer Dashboard</h1>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="card bg-blue-50 border-blue-100">
+                    <h3 className="text-sm font-medium text-blue-800 uppercase">Upcoming Classes</h3>
+                    <p className="text-3xl font-bold text-blue-900 mt-2">{upcomingClasses.length}</p>
+                </div>
+                <div className="card">
+                    <h3 className="text-sm font-medium text-gray-500 uppercase">Quick Actions</h3>
+                    <div className="mt-4 flex gap-2">
+                        <Link to="/dashboard/plans" className="btn-secondary text-sm">Upload Plan</Link>
+                        <button onClick={() => setIsAvailabilityModalOpen(true)} className="btn-primary text-sm">
+                            Set Availability
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Availability Modal */}
+            {isAvailabilityModalOpen && (
+                <AvailabilityModal
+                    onClose={() => setIsAvailabilityModalOpen(false)}
+                    currentAvailability={user?.availability}
+                    onSave={(updatedUser) => {
+                        // Ideally update local auth context or reload
+                        // For now just close, user context might need refresh if deeply integrated
+                        setIsAvailabilityModalOpen(false);
+                    }}
+                />
+            )}
+
+            {/* Upcoming Schedule */}
+            <div className="card">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-900">Your Schedule</h2>
+                    <Link to="/dashboard/my-classes" className="text-primary-600 text-sm hover:underline">Manage All</Link>
+                </div>
+
+                {loading ? <p>Loading...</p> : upcomingClasses.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                        {upcomingClasses.slice(0, 5).map(cls => (
+                            <div key={cls._id} className="py-4 flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">{cls.name}</h3>
+                                    <p className="text-sm text-gray-500">
+                                        {new Date(cls.startTime).toLocaleDateString()} at {new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        {cls.attendees?.length || 0} / {cls.capacity}
+                                    </span>
+                                    <div className="mt-1">
+                                        <Link to={`/dashboard/my-classes`} className="text-sm text-primary-600 hover:text-primary-800">View Details</Link>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-gray-500 text-center py-6">No upcoming classes scheduled.</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default TrainerDashboard;

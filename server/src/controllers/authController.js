@@ -10,6 +10,9 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+        if (!user.isActive) {
+            return res.status(401).json({ message: 'Account pending approval. Please wait for admin activation.' });
+        }
         res.json({
             _id: user._id,
             name: user.name,
@@ -38,7 +41,8 @@ const registerUser = async (req, res) => {
         name,
         email,
         password,
-        role: 'member' // Default to member for public signup
+        role: 'member', // Default to member for public signup
+        isActive: false // FORCE PENDING STATUS: Admin must approve
     });
 
     if (user) {

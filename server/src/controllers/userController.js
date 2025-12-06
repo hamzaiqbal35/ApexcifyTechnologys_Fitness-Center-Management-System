@@ -35,7 +35,10 @@ const createTrainer = async (req, res) => {
         password,
         role: 'trainer',
         specialization,
-        experience
+        experience,
+        isActive: true,
+        approvedAt: new Date(),
+        approvedBy: req.user._id
     });
 
     if (user) {
@@ -48,6 +51,39 @@ const createTrainer = async (req, res) => {
         });
     } else {
         res.status(400).json({ message: 'Invalid user data' });
+    }
+};
+
+// @desc    Update user (Admin only)
+// @route   PUT /api/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        user.role = req.body.role || user.role;
+        user.specialization = req.body.specialization || user.specialization;
+        user.experience = req.body.experience || user.experience;
+        user.isActive = req.body.isActive !== undefined ? req.body.isActive : user.isActive;
+
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            specialization: updatedUser.specialization,
+            isActive: updatedUser.isActive
+        });
+    } else {
+        res.status(404).json({ message: 'User not found' });
     }
 };
 
@@ -99,4 +135,4 @@ const updateUserProfile = async (req, res) => {
 };
 
 
-module.exports = { getUsers, getTrainers, createTrainer, deleteUser, updateUserProfile };
+module.exports = { getUsers, getTrainers, createTrainer, deleteUser, updateUser, updateUserProfile };

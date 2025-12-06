@@ -27,36 +27,43 @@ const Navbar = () => {
 
     const isActive = (path) => {
         return location.pathname === path
-            ? 'bg-primary-50 text-primary-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
+            ? 'bg-primary-50 text-primary-600 shadow-sm ring-1 ring-primary-200'
+            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900';
     };
 
     const handleLogout = () => {
-        // Navigate to public route first to avoid ProtectedRoute redirecting to /login
+        setIsProfileOpen(false);
+        setIsMobileMenuOpen(false);
         navigate('/');
-        // Clear auth state after navigation has started
-        setTimeout(() => {
-            logout();
-        }, 100);
+        setTimeout(() => logout(), 100);
     };
 
     const adminLinks = [
         { name: 'Dashboard', path: '/dashboard' },
-        { name: 'Trainers', path: '/dashboard/trainers' },
-        { name: 'Classes', path: '/dashboard/classes' },
         { name: 'Members', path: '/dashboard/members' },
+        { name: 'Trainers', path: '/dashboard/trainers' },
+        { name: 'Scheduling', path: '/dashboard/classes' },
+        { name: 'Memberships', path: '/dashboard/admin/memberships' },
+        { name: 'Workout Plans', path: '/dashboard/plans' },
+        { name: 'Attendance', path: '/dashboard/admin/attendance' },
+        { name: 'Payments', path: '/dashboard/admin/payments' },
+        { name: 'Alerts', path: '/dashboard/admin/notifications' },
     ];
 
     const trainerLinks = [
-        { name: 'My Schedule', path: '/dashboard' },
-        { name: 'Plan Management', path: '/dashboard/plans' },
+        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'My Classes', path: '/dashboard/my-classes' },
+        { name: 'My Members', path: '/dashboard/my-members' },
+        { name: 'Plans', path: '/dashboard/plans' },
+        { name: 'Attendance', path: '/dashboard/trainer/attendance' },
     ];
 
     const memberLinks = [
-        { name: 'Book Classes', path: '/dashboard' },
-        { name: 'My Bookings', path: '/dashboard/bookings' },
-        { name: 'My Plans', path: '/dashboard/plans' },
-        { name: 'Subscription', path: '/dashboard/subscription' },
+        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'Classes', path: '/dashboard/classes' },
+        { name: 'My Plans', path: '/dashboard/my-plans' },
+        { name: 'History', path: '/dashboard/my-attendance' },
+        { name: 'Billing', path: '/dashboard/subscription' },
     ];
 
     let links = [];
@@ -65,20 +72,29 @@ const Navbar = () => {
     else links = memberLinks;
 
     return (
-        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <nav className="sticky top-0 z-50 w-full backdrop-blur-lg bg-white/80 border-b border-slate-200/60 supports-[backdrop-filter]:bg-white/60 transition-all duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    {/* Logo and Desktop Navigation */}
-                    <div className="flex">
-                        <div className="flex-shrink-0 flex items-center">
-                            <Link to="/" className="font-display font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-600">FitTrack</Link>
-                        </div>
-                        <div className="hidden sm:ml-6 sm:flex sm:space-x-4 items-center">
+                <div className="flex justify-between h-20">
+                    {/* Logo */}
+                    <div className="flex items-center">
+                        <Link to="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/30 group-hover:scale-105 transition-transform duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                    <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <span className="font-display font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 group-hover:from-primary-600 group-hover:to-blue-600 transition-all duration-300">
+                                FitTrack
+                            </span>
+                        </Link>
+
+                        {/* Desktop Nav */}
+                        <div className="hidden lg:ml-10 lg:flex lg:space-x-1 items-center">
                             {links.map((link) => (
                                 <Link
                                     key={link.name}
                                     to={link.path}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(link.path)}`}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive(link.path)}`}
                                 >
                                     {link.name}
                                 </Link>
@@ -86,132 +102,120 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    {/* User Profile Dropdown (Desktop) & Mobile Menu Button */}
-                    <div className="flex items-center">
+                    {/* Right Side: Profile & Mobile Toggle */}
+                    <div className="flex items-center gap-4">
                         {/* Desktop Profile Dropdown */}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center relative" ref={profileRef}>
+                        <div className="hidden lg:flex lg:items-center relative" ref={profileRef}>
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 items-center gap-2 p-1"
-                                id="user-menu-button"
-                                aria-expanded={isProfileOpen}
-                                aria-haspopup="true"
+                                className="group flex items-center gap-3 pl-3 pr-1.5 py-1.5 rounded-full bg-slate-50 border border-slate-200 hover:border-primary-200 hover:bg-white hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500"
                             >
-                                <span className="sr-only">Open user menu</span>
-                                <span className="text-sm font-medium text-gray-700 ml-2">{user?.name}</span>
-                                <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold border border-primary-200">
+                                <span className="text-sm font-semibold text-slate-700 group-hover:text-primary-700 transition-colors">
+                                    {user?.name?.split(' ')[0]}
+                                </span>
+                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </div>
                             </button>
 
                             {/* Dropdown Menu */}
-                            {isProfileOpen && (
-                                <div
-                                    className="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none animate-fade-in"
-                                    role="menu"
-                                    aria-orientation="vertical"
-                                    aria-labelledby="user-menu-button"
-                                    tabIndex="-1"
-                                >
-                                    <div className="px-4 py-2 border-b border-gray-100">
-                                        <p className="text-sm text-gray-700 font-medium truncate">Signed in as</p>
-                                        <p className="text-xs text-gray-500 truncate font-semibold capitalize">{user?.role}</p>
+                            <div className={`
+                                absolute right-0 top-full mt-4 w-56 rounded-2xl shadow-xl bg-white ring-1 ring-black/5 transform transition-all duration-200 origin-top-right
+                                ${isProfileOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}
+                            `}>
+                                <div className="p-2 space-y-1">
+                                    <div className="px-3 py-2 bg-slate-50 rounded-xl mb-2">
+                                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Signed in as</p>
+                                        <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
+                                        <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 text-primary-700 capitalize border border-primary-100">
+                                            {user?.role}
+                                        </div>
                                     </div>
+
                                     <Link
                                         to="/dashboard/profile"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        role="menuitem"
                                         onClick={() => setIsProfileOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                                     >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                         Your Profile
                                     </Link>
+
                                     <button
-                                        onClick={() => {
-                                            setIsProfileOpen(false);
-                                            handleLogout();
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        role="menuitem"
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors text-left"
                                     >
-                                        Sign out
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                        Sign Out
                                     </button>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
-                        {/* Mobile menu button */}
-                        <div className="-mr-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-                            >
-                                <span className="sr-only">Open main menu</span>
-                                {!isMobileMenuOpen ? (
-                                    <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                ) : (
-                                    <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                )}
-                            </button>
-                        </div>
+                        {/* Mobile Toggle */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all focus:outline-none"
+                        >
+                            {isMobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
 
             {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                <div className="sm:hidden bg-white border-b border-gray-200 animate-slide-up">
-                    <div className="pt-2 pb-3 space-y-1">
-                        {links.map((link) => (
-                            <Link
-                                key={link.name}
-                                to={link.path}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${location.pathname === link.path
-                                    ? 'bg-primary-50 border-primary-500 text-primary-700'
-                                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
-                                    }`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="pt-4 pb-4 border-t border-gray-200">
-                        <div className="flex items-center px-4">
-                            <div className="flex-shrink-0">
-                                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold border border-primary-200">
-                                    {user?.name?.charAt(0).toUpperCase()}
-                                </div>
+            <div className={`
+                lg:hidden fixed inset-x-0 top-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 shadow-lg transform transition-all duration-300 ease-in-out
+                ${isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
+            `}>
+                <div className="max-h-[80vh] overflow-y-auto px-4 py-4 space-y-2">
+                    {links.map((link) => (
+                        <Link
+                            key={link.name}
+                            to={link.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`block px-4 py-3 rounded-xl text-base font-medium transition-all ${location.pathname === link.path
+                                    ? 'bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100'
+                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
+                        >
+                            {link.name}
+                        </Link>
+                    ))}
+
+                    <div className="pt-4 mt-4 border-t border-slate-100">
+                        <div className="flex items-center px-4 py-3 bg-slate-50 rounded-xl mb-3">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                {user?.name?.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-3">
-                                <div className="text-base font-medium text-gray-800">{user?.name}</div>
-                                <div className="text-sm font-medium text-gray-500 capitalize">{user?.role}</div>
+                                <p className="text-sm font-bold text-slate-800">{user?.name}</p>
+                                <p className="text-xs text-slate-500 font-medium capitalize">{user?.role}</p>
                             </div>
                         </div>
-                        <div className="mt-3 space-y-1">
+
+                        <div className="grid grid-cols-2 gap-2">
                             <Link
                                 to="/dashboard/profile"
-                                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                                 onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:border-primary-200 hover:text-primary-600 transition-all"
                             >
-                                Your Profile
+                                Profile
                             </Link>
                             <button
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    handleLogout();
-                                }}
-                                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                                onClick={handleLogout}
+                                className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition-all"
                             >
-                                Sign out
+                                Sign Out
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
         </nav>
     );
 };

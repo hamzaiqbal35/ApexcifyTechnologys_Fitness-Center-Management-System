@@ -1,18 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { bookClass, getMyBookings, cancelBooking, updateBookingStatus } = require('../controllers/bookingController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { getMyBookings, getBooking, cancelBooking, generateQRToken } = require('../controllers/bookingController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.route('/')
-    .post(protect, bookClass);
+// All routes require authentication
+router.use(protect);
 
-router.route('/mybookings')
-    .get(protect, getMyBookings);
-
-router.route('/:id')
-    .delete(protect, cancelBooking);
-
-router.route('/:id/status')
-    .put(protect, authorize('admin', 'trainer'), updateBookingStatus); // Add authorize middleware
+router.get('/my-bookings', getMyBookings);
+router.get('/:id', getBooking);
+router.put('/:id/cancel', cancelBooking);
+router.post('/:id/generate-qr', generateQRToken);
 
 module.exports = router;
+
