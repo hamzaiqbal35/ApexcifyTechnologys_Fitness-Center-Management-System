@@ -109,7 +109,7 @@ const handleInvoicePaymentSucceeded = async (invoice) => {
         // Create payment record
         await Payment.create({
             userId: subscription.userId._id,
-            amount: invoice.amount_paid,
+            amount: invoice.amount_paid / 100, // Convert Cents to Rupees
             currency: invoice.currency,
             status: 'paid',
             stripePaymentIntentId: invoice.payment_intent,
@@ -265,7 +265,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         // Create payment record
         const payment = await Payment.create({
             userId: user._id,
-            amount: paymentIntent.amount,
+            amount: paymentIntent.amount / 100, // Convert Cents to Rupees
             currency: paymentIntent.currency,
             status: 'paid',
             stripePaymentIntentId: paymentIntent.id,

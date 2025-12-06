@@ -73,7 +73,7 @@ const ManageMembershipPlans = () => {
         setFormData({
             name: plan.name,
             description: plan.description,
-            price: plan.price / 100,
+            price: plan.price,
             interval: plan.interval,
             classesPerMonth: plan.classesPerMonth,
             features: plan.features.join(', ')
@@ -104,7 +104,7 @@ const ManageMembershipPlans = () => {
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                                 <p className="text-primary-600 font-bold text-lg mt-1">
-                                    Rs. {plan.price / 100} / {plan.interval}
+                                    Rs. {plan.price} / {plan.interval}
                                 </p>
                             </div>
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${plan.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

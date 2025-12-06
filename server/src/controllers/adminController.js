@@ -301,8 +301,21 @@ const refundPayment = async (req, res) => {
         }
 
         // Create refund in Stripe
+        let intentId = payment.stripePaymentIntentId;
+
+        // If ID is an Invoice (starts with 'in_'), retrieve the Payment Intent from it
+        if (intentId && intentId.startsWith('in_')) {
+            try {
+                const invoice = await stripe.invoices.retrieve(intentId);
+                intentId = invoice.payment_intent;
+            } catch (err) {
+                console.warn("Could not retrieve invoice for refund:", err.message);
+                // Fallback: try using it directly or fail if invalid
+            }
+        }
+
         const refund = await stripe.refunds.create({
-            payment_intent: payment.stripePaymentIntentId,
+            payment_intent: intentId,
         });
 
         // Update payment record

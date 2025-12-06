@@ -42,7 +42,7 @@ const registerUser = async (req, res) => {
         email,
         password,
         role: 'member', // Default to member for public signup
-        isActive: false // FORCE PENDING STATUS: Admin must approve
+        isActive: true // Auto-activate new members
     });
 
     if (user) {

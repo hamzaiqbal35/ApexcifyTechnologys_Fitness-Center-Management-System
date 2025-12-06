@@ -67,6 +67,7 @@ const Subscription = () => {
 
     const [availablePlans, setAvailablePlans] = useState([]);
     const [payments, setPayments] = useState([]);
+    const [subscribingId, setSubscribingId] = useState(null);
 
     useEffect(() => {
         loadSubscription();
@@ -93,12 +94,15 @@ const Subscription = () => {
     };
 
     const handleSubscribe = async (planId) => {
+        if (subscribingId) return; // Prevent double click
+        setSubscribingId(planId);
         try {
             const { url } = await subscriptionService.createCheckoutSession(planId);
             window.location.href = url;
         } catch (error) {
             console.error("Failed to start subscription flow", error);
             alert("Failed to initialize payment. Please try again.");
+            setSubscribingId(null);
         }
     };
 
@@ -121,7 +125,7 @@ const Subscription = () => {
                             <div className="p-6 flex-grow">
                                 <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
                                 <div className="mt-4 flex items-baseline">
-                                    <span className="text-4xl font-extrabold text-gray-900">Rs. {plan.price / 100}</span>
+                                    <span className="text-4xl font-extrabold text-gray-900">Rs. {plan.price}</span>
                                     <span className="ml-1 text-xl text-gray-500">/{plan.interval}</span>
                                 </div>
                                 <p className="mt-4 text-gray-500">{plan.description}</p>
@@ -146,9 +150,10 @@ const Subscription = () => {
                             <div className="p-6 pt-0 mt-auto">
                                 <button
                                     onClick={() => handleSubscribe(plan._id)}
-                                    className="btn-primary w-full text-lg shadow-lg"
+                                    disabled={subscribingId === plan._id}
+                                    className={`btn-primary w-full text-lg shadow-lg ${subscribingId === plan._id ? 'opacity-75 cursor-not-allowed' : ''}`}
                                 >
-                                    Select {plan.name}
+                                    {subscribingId === plan._id ? 'Processing...' : `Select ${plan.name}`}
                                 </button>
                             </div>
                         </div>

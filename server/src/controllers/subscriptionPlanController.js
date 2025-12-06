@@ -55,7 +55,7 @@ const createSubscriptionPlan = async (req, res) => {
         // Create price in Stripe
         const stripePrice = await stripe.prices.create({
             product: product.id,
-            unit_amount: price, // Price in cents
+            unit_amount: price * 100, // Stripe requires cents (paisa)
             currency: 'pkr',
             recurring: {
                 interval,
@@ -63,10 +63,11 @@ const createSubscriptionPlan = async (req, res) => {
         });
 
         // Create plan in database
+        // Store price in Rupees as requested by user
         const plan = await SubscriptionPlan.create({
             name,
             description,
-            price,
+            price: price,
             interval,
             stripePriceId: stripePrice.id,
             stripeProductId: product.id,
@@ -101,7 +102,7 @@ const createSubscriptionPlan = async (req, res) => {
  */
 const updateSubscriptionPlan = async (req, res) => {
     try {
-        const { name, description, features, classesPerMonth, isActive } = req.body;
+        const { name, description, features, classesPerMonth, isActive, price } = req.body;
 
         const plan = await SubscriptionPlan.findById(req.params.id);
 
@@ -115,6 +116,30 @@ const updateSubscriptionPlan = async (req, res) => {
                 name: name || plan.name,
                 description: description || plan.description,
             });
+        }
+
+        // Handle Price Change
+        // Compare new price (Rupees) with stored price (Rupees)
+        if (price) {
+
+            if (Number(price) !== Number(plan.price)) {
+                // Create new price in Stripe (Convert Rupees to Cents/Paisa)
+                const newStripePrice = await stripe.prices.create({
+                    product: plan.stripeProductId,
+                    unit_amount: price * 100,
+                    currency: 'pkr',
+                    recurring: {
+                        interval: plan.interval, // Keep same interval
+                    },
+                });
+
+                // Update plan with new price info (Store in Rupees)
+                plan.price = price;
+                plan.stripePriceId = newStripePrice.id;
+
+                // Note: Existing subscriptions will continue on the old price ID 
+                // until they are explicitly updated or cancelled.
+            }
         }
 
         // Update plan in database

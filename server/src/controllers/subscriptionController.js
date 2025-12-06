@@ -145,7 +145,7 @@ const createCheckoutSession = async (req, res) => {
                             name: plan.name,
                             description: plan.description,
                         },
-                        unit_amount: plan.price, // Amount in Paisa
+                        unit_amount: plan.price * 100, // Amount in Paisa (Converted from Rupees)
                         recurring: {
                             interval: plan.interval,
                         },
@@ -249,7 +249,7 @@ const syncSubscription = async (req, res) => {
             if (!existingPayment) {
                 await Payment.create({
                     userId: req.user._id,
-                    amount: session.amount_total,
+                    amount: session.amount_total / 100, // Convert Cents to Rupees
                     stripePaymentIntentId: paymentIntentId,
                     status: 'paid', // session.payment_status is 'paid'
                     subscriptionId: subscription._id
@@ -264,7 +264,7 @@ const syncSubscription = async (req, res) => {
             // Best effort:
             await Payment.create({
                 userId: req.user._id,
-                amount: session.amount_total,
+                amount: session.amount_total / 100, // Convert Cents to Rupees
                 stripePaymentIntentId: typeof session.invoice === 'string' ? session.invoice : session.id, // Fallback
                 status: 'paid',
                 subscriptionId: subscription._id
