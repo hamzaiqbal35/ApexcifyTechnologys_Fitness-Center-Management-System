@@ -26,7 +26,11 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                     try {
                         const scanner = new Html5QrcodeScanner(
                             "reader", 
-                            { fps: 10, qrbox: { width: 250, height: 250 } },
+                            { 
+                                fps: 60, // Increased for faster scanning
+                                qrbox: { width: 250, height: 250 },
+                                aspectRatio: 1.0
+                            },
                             /* verbose= */ false
                         );
                         scanner.render(handleScanSuccess, handleScanFailure);
@@ -109,11 +113,12 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
         }
     };
 
+    const isProcessing = useRef(false);
+
     const handleScanSuccess = async (decodedText, decodedResult) => {
-        // Pause scanner to avoid multiple reads
-        if (scannerRef.current) {
-             try { scannerRef.current.pause(); } catch(e) {}
-        }
+        if (isProcessing.current) return;
+        
+        isProcessing.current = true;
 
         try {
             const data = JSON.parse(decodedText);
@@ -128,23 +133,23 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
             // Refresh roster
             await loadData();
             
-            // Resume after 2 seconds
+            // Reset processing flag after delay
             setTimeout(() => {
                 setScanResult(null);
-                if (scannerRef.current) {
-                     try { scannerRef.current.resume(); } catch(e) {}
-                }
+                isProcessing.current = false;
             }, 2000);
 
         } catch (error) {
             console.error("Scan failed", error);
+            // Don't show error for every frame if it's just invalid format momentarily, 
+            // but if it's a parseable error, show it.
+            // Only show error if we are sure it's a failed attempt
+            
             setScanResult({ success: false, message: error.response?.data?.message || error.message || "Invalid QR Code" });
             
             setTimeout(() => {
                 setScanResult(null);
-                if (scannerRef.current) {
-                     try { scannerRef.current.resume(); } catch(e) {}
-                }
+                isProcessing.current = false;
             }, 3000);
         }
     };

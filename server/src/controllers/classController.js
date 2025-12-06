@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Class = require('../models/Class');
 const Booking = require('../models/Booking');
 const Notification = require('../models/Notification');
@@ -99,6 +100,7 @@ const createClass = async (req, res) => {
 
         const classesToCreate = [];
         const numberOfClasses = isRecurring ? (parseInt(recurrenceCount) || 1) : 1;
+        const recurrenceGroupId = isRecurring ? new mongoose.Types.ObjectId() : undefined;
 
         for (let i = 0; i < numberOfClasses; i++) {
             const currentStart = new Date(initialStart);
@@ -144,6 +146,7 @@ const createClass = async (req, res) => {
                 capacity,
                 location,
                 trainerId: trainerId,
+                recurrenceGroupId: recurrenceGroupId
             });
         }
 

@@ -53,6 +53,10 @@ const classSchema = new mongoose.Schema({
         type: Object,
         default: {},
     },
+    recurrenceGroupId: {
+        type: mongoose.Schema.Types.ObjectId,
+        index: true,
+    },
 }, {
     timestamps: true,
 });
@@ -64,11 +68,13 @@ classSchema.index({ status: 1 });
 
 // Virtual for checking if class is full
 classSchema.virtual('isFull').get(function () {
+    if (!this.attendees) return false;
     return this.attendees.length >= this.capacity;
 });
 
 // Virtual for available spots
 classSchema.virtual('availableSpots').get(function () {
+    if (!this.attendees) return this.capacity;
     return Math.max(0, this.capacity - this.attendees.length);
 });
 

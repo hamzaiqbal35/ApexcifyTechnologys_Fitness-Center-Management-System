@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 const ClassBooking = () => {
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [processingId, setProcessingId] = useState(null); // Track which class is being booked
     const [filters, setFilters] = useState({
         startDate: new Date().toISOString().split('T')[0], // Today
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
@@ -33,6 +34,7 @@ const ClassBooking = () => {
     const handleBook = async (classId) => {
         if (!window.confirm('Confirm booking for this class?')) return;
 
+        setProcessingId(classId); // Start processing
         try {
             await classService.bookClass(classId);
             alert('Class booked successfully!');
@@ -40,6 +42,8 @@ const ClassBooking = () => {
         } catch (error) {
             console.error("Booking failed", error);
             alert(error.response?.data?.message || 'Failed to book class');
+        } finally {
+            setProcessingId(null); // End processing
         }
     };
 
@@ -113,10 +117,10 @@ const ClassBooking = () => {
 
                                 <button
                                     onClick={() => handleBook(cls._id)}
-                                    className="w-full mt-4 btn-primary"
-                                    disabled={cls.isFull}
+                                    className={`w-full mt-4 btn-primary ${processingId === cls._id ? 'opacity-75 cursor-not-allowed' : ''}`}
+                                    disabled={cls.isFull || processingId === cls._id}
                                 >
-                                    {cls.isFull ? 'Join Waitlist' : 'Book Class'}
+                                    {processingId === cls._id ? 'Processing...' : (cls.isFull ? 'Join Waitlist' : 'Book Class')}
                                 </button>
                             </div>
                         ))

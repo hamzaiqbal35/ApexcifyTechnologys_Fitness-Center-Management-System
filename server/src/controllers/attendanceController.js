@@ -28,9 +28,13 @@ const checkInWithQR = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Verify booking belongs to user
-        if (booking.memberId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: 'Not authorized' });
+        // Verify authorization: Member themselves, Class Trainer, or Admin
+        const isMember = booking.memberId.toString() === req.user._id.toString();
+        const isTrainer = booking.classId.trainerId && booking.classId.trainerId.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isMember && !isTrainer && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to check in this booking' });
         }
 
         // Check if already checked in

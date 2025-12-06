@@ -3,6 +3,8 @@ const Class = require('../models/Class');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
+const Subscription = require('../models/Subscription');
+const Plan = require('../models/Plan');
 const { sendBookingConfirmation, sendBookingCancellation } = require('../utils/emailService');
 
 /**
@@ -14,99 +16,203 @@ const bookClass = async (req, res) => {
     try {
         const { classId } = req.params;
 
-        // Check if already booked
-        const existingBooking = await Booking.findOne({
-            memberId: req.user._id,
-            classId,
-        });
+        // Get initial class details
+        const initialClass = await Class.findById(classId).populate('trainerId', 'name');
 
-        if (existingBooking) {
-            return res.status(400).json({ message: 'You have already booked this class' });
-        }
-
-        // Get class details
-        const classData = await Class.findById(classId).populate('trainerId', 'name');
-
-        if (!classData) {
+        if (!initialClass) {
             return res.status(404).json({ message: 'Class not found' });
         }
 
-        if (classData.status !== 'scheduled') {
-            return res.status(400).json({ message: 'Class is not available for booking' });
+        // --- COURSE LIMIT CHECK START ---
+
+        // 1. Get User's Active Subscription & Plan
+        const subscription = await Subscription.findOne({
+            userId: req.user._id,
+            status: { $in: ['active', 'trialing', 'incomplete'] }
+        }).populate('planId');
+
+        if (!subscription) {
+            return res.status(403).json({ message: 'Active subscription required to book classes' });
         }
 
-        // Atomic capacity check and booking using findOneAndUpdate
-        const updatedClass = await Class.findOneAndUpdate(
-            {
-                _id: classId,
-                status: 'scheduled',
-                $expr: { $lt: [{ $size: '$attendees' }, '$capacity'] },
-            },
-            {
-                $addToSet: { attendees: req.user._id },
-            },
-            { new: true }
-        );
+        const planLimit = subscription.planId.classesPerMonth || 0; // 0 means unlimited
 
-        if (!updatedClass) {
-            // Class is full, add to waitlist
-            const waitlistClass = await Class.findOneAndUpdate(
+        if (planLimit > 0) {
+            // 2. Get User's Current Active Bookings
+            const myBookings = await Booking.find({
+                memberId: req.user._id,
+                status: 'booked'
+            }).populate('classId');
+
+            // 3. Count Unique "Courses"
+            const enrolledRecurrenceGroups = new Set();
+            const enrolledStandaloneClasses = new Set();
+
+            myBookings.forEach(booking => {
+                if (!booking.classId) return; // stale data
+
+                if (booking.classId.recurrenceGroupId) {
+                    enrolledRecurrenceGroups.add(booking.classId.recurrenceGroupId.toString());
+                } else {
+                    enrolledStandaloneClasses.add(booking.classId._id.toString());
+                }
+            });
+
+            const currentCourseCount = enrolledRecurrenceGroups.size + enrolledStandaloneClasses.size;
+
+            // 4. Check if Current Request is a NEW Course
+            let isNewCourse = true;
+            if (initialClass.recurrenceGroupId) {
+                if (enrolledRecurrenceGroups.has(initialClass.recurrenceGroupId.toString())) {
+                    isNewCourse = false;
+                }
+            } else {
+                if (enrolledStandaloneClasses.has(initialClass._id.toString())) {
+                    isNewCourse = false;
+                }
+            }
+
+            // 5. Enforce Limit
+            if (isNewCourse && currentCourseCount >= planLimit) {
+                return res.status(403).json({
+                    message: `Course limit reached. Your plan allows ${planLimit} courses. You are currently enrolled in ${currentCourseCount}. Unbook an existing course to join a new one.`,
+                    currentCount: currentCourseCount,
+                    limit: planLimit
+                });
+            }
+        }
+        // --- COURSE LIMIT CHECK END ---
+
+        // Determine classes to book: either just this one, or the whole series if recurring
+        let classesToBook = [initialClass];
+
+        if (initialClass.recurrenceGroupId) {
+            // Find all future classes in this series, starting from this one
+            const seriesClasses = await Class.find({
+                recurrenceGroupId: initialClass.recurrenceGroupId,
+                startTime: { $gte: initialClass.startTime }, // Only future/current ones
+                status: 'scheduled'
+            }).populate('trainerId', 'name');
+
+            if (seriesClasses.length > 0) {
+                classesToBook = seriesClasses;
+            }
+        }
+
+        const results = [];
+        let anyWaitlisted = false;
+
+        for (const classData of classesToBook) {
+            // Check if already booked
+            const existingBooking = await Booking.findOne({
+                memberId: req.user._id,
+                classId: classData._id,
+            });
+
+            if (existingBooking) {
+                results.push({ classId: classData._id, status: 'already_booked', message: 'Already booked' });
+                continue;
+            }
+
+            if (classData.status !== 'scheduled') {
+                results.push({ classId: classData._id, status: 'error', message: 'Not scheduled' });
+                continue;
+            }
+
+            // Atomic capacity check and booking
+            const updatedClass = await Class.findOneAndUpdate(
                 {
-                    _id: classId,
+                    _id: classData._id,
                     status: 'scheduled',
+                    $expr: { $lt: [{ $size: '$attendees' }, '$capacity'] },
                 },
                 {
-                    $addToSet: { waitlist: req.user._id },
+                    $addToSet: { attendees: req.user._id },
                 },
                 { new: true }
             );
 
-            if (!waitlistClass) {
-                return res.status(404).json({ message: 'Class not found' });
+            if (!updatedClass) {
+                // Class is full, add to waitlist
+                const waitlistClass = await Class.findOneAndUpdate(
+                    {
+                        _id: classData._id,
+                        status: 'scheduled',
+                    },
+                    {
+                        $addToSet: { waitlist: req.user._id },
+                    },
+                    { new: true }
+                );
+
+                if (waitlistClass) {
+                    await Notification.create({
+                        userId: req.user._id,
+                        type: 'waitlist_added',
+                        title: 'Added to Waitlist',
+                        message: `You have been added to the waitlist for "${classData.name}" on ${classData.startTime.toLocaleDateString()}.`,
+                    });
+                    results.push({ classId: classData._id, status: 'waitlisted', message: 'Class full, waitlisted' });
+                    anyWaitlisted = true;
+                } else {
+                    results.push({ classId: classData._id, status: 'error', message: 'Failed to join waitlist' });
+                }
+                continue;
             }
 
-            // Create notification
+            // Create booking record
+            const booking = await Booking.create({
+                memberId: req.user._id,
+                classId: classData._id,
+                status: 'booked',
+            });
+
+            // Create notification (maybe only for the first one to avoid spam? or all? sticking to all for now or user might miss dates)
+            // Let's create one notification for the first one, or maybe just log it.
+            // If it's a series, maybe reduce noise. But existing logic is 1 notification per booking. 
+            // I'll keep it per booking for now so they have record.
+
             await Notification.create({
                 userId: req.user._id,
-                type: 'waitlist_added',
-                title: 'Added to Waitlist',
-                message: `You have been added to the waitlist for "${classData.name}". We'll notify you if a spot opens up.`,
+                type: 'booking_confirmed',
+                title: 'Booking Confirmed',
+                message: `Your booking for "${classData.name}" on ${classData.startTime.toLocaleString()} has been confirmed.`,
             });
 
-            return res.status(200).json({
-                message: 'Class is full. You have been added to the waitlist.',
-                waitlisted: true,
-            });
+            // We can send email async
+            sendBookingConfirmation(
+                booking,
+                {
+                    name: classData.name,
+                    trainerName: classData.trainerId.name,
+                    startTime: classData.startTime,
+                    location: classData.location,
+                },
+                req.user
+            ).catch(err => console.error("Email error", err));
+
+            results.push({ classId: classData._id, status: 'booked', bookingId: booking._id });
         }
 
-        // Create booking record
-        const booking = await Booking.create({
-            memberId: req.user._id,
-            classId,
-            status: 'booked',
+        // Response
+        if (classesToBook.length === 1) {
+            // Backward compatibility response for single booking
+            const resData = results[0];
+            if (resData.status === 'booked') {
+                return res.status(201).json({ message: 'Class booked successfully', booking: { _id: resData.bookingId, ...initialClass.toObject() } }); // Mocking booking retrieval simplicity
+            } else if (resData.status === 'waitlisted') {
+                return res.status(200).json({ message: 'Class is full. Added to waitlist.', waitlisted: true });
+            } else if (resData.status === 'already_booked') {
+                return res.status(400).json({ message: 'You have already booked this class' });
+            }
+        }
+
+        res.status(201).json({
+            message: `Processed ${classesToBook.length} bookings.`,
+            results,
+            waitlisted: anyWaitlisted
         });
 
-        // Create notification
-        await Notification.create({
-            userId: req.user._id,
-            type: 'booking_confirmed',
-            title: 'Booking Confirmed',
-            message: `Your booking for "${classData.name}" on ${classData.startTime.toLocaleString()} has been confirmed.`,
-        });
-
-        // Send confirmation email
-        await sendBookingConfirmation(
-            booking,
-            {
-                name: classData.name,
-                trainerName: classData.trainerId.name,
-                startTime: classData.startTime,
-                location: classData.location,
-            },
-            req.user
-        );
-
-        res.status(201).json({ message: 'Class booked successfully', booking });
     } catch (error) {
         console.error('Error booking class:', error);
         res.status(500).json({ message: 'Error booking class' });

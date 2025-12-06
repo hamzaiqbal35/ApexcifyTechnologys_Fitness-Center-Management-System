@@ -22,7 +22,7 @@ const getDashboard = async (req, res) => {
 
         // Get active subscriptions count
         const activeSubscriptions = await Subscription.countDocuments({
-            status: { $in: ['active', 'trialing'] },
+            status: { $in: ['active', 'trialing', 'incomplete'] },
         });
 
         // Get total members count
