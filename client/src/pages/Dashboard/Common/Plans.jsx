@@ -12,7 +12,7 @@ const PlanCard = ({ plan, onSubscribe, isCurrent }) => (
         <div className="mb-4">
             <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
             <div className="mt-2 flex items-baseline">
-                <span className="text-3xl font-extrabold text-gray-900">Rs. {plan.price / 100}</span>
+                <span className="text-3xl font-extrabold text-gray-900">Rs. {plan.price}</span>
                 <span className="ml-1 text-gray-500">/{plan.interval}</span>
             </div>
             <p className="mt-4 text-gray-500 text-sm">{plan.description}</p>

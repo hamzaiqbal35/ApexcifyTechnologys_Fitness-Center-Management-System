@@ -19,7 +19,26 @@ const AdminDashboard = () => {
     const loadStats = async () => {
         try {
             const data = await adminService.getDashboardStats();
-            setStats(data);
+
+            // Calculate monthly revenue from revenueByDay
+            const calculatedMonthlyRevenue = data.revenueByDay
+                ? data.revenueByDay.reduce((acc, curr) => acc + curr.revenue, 0)
+                : 0;
+
+            // Map recent bookings to activity format if recentActivity is missing
+            const activityLogs = data.recentBookings ? data.recentBookings.map(booking => ({
+                action: 'Class Booking',
+                details: `${booking.memberId?.name || 'User'} booked ${booking.classId?.name || 'Class'}`,
+                timestamp: booking.createdAt
+            })) : [];
+
+            setStats({
+                totalMembers: data.kpis?.totalMembers || 0,
+                activeSubscriptions: data.kpis?.activeSubscriptions || 0,
+                totalRevenue: data.kpis?.totalRevenue || 0,
+                monthlyRevenue: calculatedMonthlyRevenue,
+                recentActivity: activityLogs
+            });
         } catch (error) {
             console.error("Failed to load admin stats", error);
         } finally {
@@ -31,7 +50,7 @@ const AdminDashboard = () => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'PKR',
-        }).format(amount / 100); // Assuming stored in cents/paisa
+        }).format(amount); // Amount is now stored in Rupees
     };
 
     return (
@@ -85,9 +104,9 @@ const AdminDashboard = () => {
                                     <h4 className="font-semibold text-gray-900">Classes</h4>
                                     <p className="text-sm text-gray-500">Schedule & Capacity</p>
                                 </Link>
-                                <Link to="/dashboard/plans" className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center pointer-events-none opacity-50">
+                                <Link to="/dashboard/plans" className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center">
                                     <h4 className="font-semibold text-gray-900">Plans</h4>
-                                    <p className="text-sm text-gray-500">Manage Pricing (Soon)</p>
+                                    <p className="text-sm text-gray-500">Manage Pricing</p>
                                 </Link>
                             </div>
                         </div>
