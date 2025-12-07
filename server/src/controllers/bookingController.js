@@ -442,10 +442,117 @@ const generateQRToken = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Unbook entire course (recurrence group)
+ * @route   PUT /api/bookings/unbook-course/:classId
+ * @access  Private/Member
+ */
+const unbookCourse = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const { reason } = req.body;
+
+        // Find the class to get recurrence details
+        // We use the classId passed (likely the one they clicked on) to find the group
+        const initialClass = await Class.findById(classId);
+
+        if (!initialClass) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+
+        let bookingsToCancel = [];
+
+        // Find all active bookings for this user...
+        const query = {
+            memberId: req.user._id,
+            status: 'booked',
+        };
+
+        if (initialClass.recurrenceGroupId) {
+            // ...that are part of this recurrence group
+            // We need to find classes in this group first
+            const courseClasses = await Class.find({ recurrenceGroupId: initialClass.recurrenceGroupId }, '_id');
+            const courseClassIds = courseClasses.map(c => c._id);
+
+            query.classId = { $in: courseClassIds };
+        } else {
+            // ...or just this single class if not recurring (fallback)
+            query.classId = initialClass._id;
+        }
+
+        // Get the bookings
+        const bookings = await Booking.find(query).populate('classId');
+
+        // Filter only future bookings (optional? usually unbooking a course means "from now on")
+        // But let's cancel ALL 'booked' status ones. Past ones should be 'completed' or 'no_show'.
+        // If they are 'booked' in the past, it means attendance wasn't taken.
+        // Let's cancel only future ones to be safe and keep history?
+        // User request: "unbook the complete class (course)"
+        // Typically this means future.
+        const now = new Date();
+        bookingsToCancel = bookings.filter(b => b.classId && new Date(b.classId.startTime) > now);
+
+        if (bookingsToCancel.length === 0) {
+            return res.status(400).json({ message: 'No future bookings found for this course.' });
+        }
+
+        let cancelledCount = 0;
+
+        for (const booking of bookingsToCancel) {
+            // Use existing cancellation logic per booking to handle waitlists/capacity updates correctly
+            // Copy-pasting core logic or refactoring is ideal. For speed, I'll replicate the core update steps.
+
+            // Remove from class attendees
+            await Class.findByIdAndUpdate(booking.classId._id, {
+                $pull: { attendees: req.user._id },
+            });
+
+            // Update booking status
+            booking.status = 'cancelled';
+            booking.cancelledAt = new Date();
+            booking.cancellationReason = reason || 'Unbooked course';
+            await booking.save();
+
+            // Handle Waitlist Promotion (Simulated for each)
+            const classData = await Class.findById(booking.classId._id);
+            if (classData.waitlist.length > 0) {
+                const nextMemberId = classData.waitlist[0];
+                await Class.findByIdAndUpdate(classData._id, {
+                    $pull: { waitlist: nextMemberId },
+                    $addToSet: { attendees: nextMemberId },
+                });
+                await Booking.create({
+                    memberId: nextMemberId,
+                    classId: classData._id,
+                    status: 'booked',
+                });
+                // Notification/Email would go here (skipped for bulk op to avoid spam, or sent as batch)
+                // For simplified UX, we skip detailed notifications for waitlist promotion in bulk unbook for now
+                // OR we should ideally do it.
+                await Notification.create({
+                    userId: nextMemberId,
+                    type: 'waitlist_promoted',
+                    title: 'Spot Available!',
+                    message: `A spot has opened up for "${classData.name}". Your booking is confirmed.`,
+                });
+            }
+
+            cancelledCount++;
+        }
+
+        res.json({ message: `Successfully unbooked ${cancelledCount} sessions from the course.` });
+
+    } catch (error) {
+        console.error('Error unbooking course:', error);
+        res.status(500).json({ message: 'Error unbooking course' });
+    }
+};
+
 module.exports = {
     bookClass,
     getMyBookings,
     getBooking,
     cancelBooking,
+    unbookCourse,
     generateQRToken,
 };

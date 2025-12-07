@@ -197,6 +197,11 @@ const updateClass = async (req, res) => {
 
         if (location) classData.location = location;
 
+        // Prevent editing if class has ended
+        if (new Date() > new Date(classData.endTime)) {
+            return res.status(400).json({ message: 'Cannot edit a class that has already ended' });
+        }
+
         // Handle trainer reassignment
         if (req.body.trainerId && req.body.trainerId !== classData.trainerId.toString()) {
             // Validate admin if changing trainer? Already checked above.

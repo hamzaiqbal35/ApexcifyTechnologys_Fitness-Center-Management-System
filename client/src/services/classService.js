@@ -65,6 +65,12 @@ export const bookingService = {
         return response.data;
     },
 
+    // Unbook entire course
+    unbookCourse: async (classId, reason) => {
+        const response = await api.put(`/bookings/unbook-course/${classId}`, { reason });
+        return response.data;
+    },
+
     // Generate QR token
     generateQR: async (bookingId) => {
         const response = await api.post(`/bookings/${bookingId}/generate-qr`);

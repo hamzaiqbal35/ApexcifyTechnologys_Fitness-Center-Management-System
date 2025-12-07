@@ -44,12 +44,32 @@ const checkInWithQR = async (req, res) => {
             return res.status(400).json({ message: 'Already checked in' });
         }
 
+        // --- TIME CONSTRAINT CHECK ---
+        const now = new Date();
+        const classStart = new Date(booking.classId.startTime);
+        const classEnd = new Date(booking.classId.endTime);
+
+        // Allow check-in 15 mins before start? or strictly start time?
+        // User said: "before date and time start time"
+        // Let's stick to strictly >= startTime for now, maybe with a small buffer if needed later.
+        // But for now strict as requested.
+
+        if (now < classStart) {
+            return res.status(400).json({ message: 'Class has not started yet. Attendance cannot be marked.' });
+        }
+
+        if (now > classEnd) {
+            return res.status(400).json({ message: 'Class has ended. Attendance cannot be marked.' });
+        }
+        // -----------------------------
+
         // Create attendance record
         const attendance = await Attendance.create({
             bookingId,
-            memberId: req.user._id,
+            memberId: booking.memberId, // Use the member from the booking, not the logged-in user (who might be trainer)
             classId: booking.classId._id,
             method: 'qr',
+            checkedInBy: req.user._id // Track who performed the scan
         });
 
         // Update booking status
@@ -109,6 +129,20 @@ const manualCheckIn = async (req, res) => {
         if (existingAttendance) {
             return res.status(400).json({ message: 'Member already checked in' });
         }
+
+        // --- TIME CONSTRAINT CHECK ---
+        const now = new Date();
+        const classStart = new Date(classData.startTime);
+        const classEnd = new Date(classData.endTime);
+
+        if (now < classStart) {
+            return res.status(400).json({ message: 'Class has not started yet. Attendance cannot be marked.' });
+        }
+
+        if (now > classEnd) {
+            return res.status(400).json({ message: 'Class has ended. Attendance cannot be marked.' });
+        }
+        // -----------------------------
 
         // Create attendance record
         const attendance = await Attendance.create({

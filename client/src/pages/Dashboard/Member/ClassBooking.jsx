@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { classService } from '../../../services/classService';
+import { classService, bookingService } from '../../../services/classService';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const ClassBooking = () => {
@@ -10,6 +10,7 @@ const ClassBooking = () => {
         startDate: new Date().toISOString().split('T')[0], // Today
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
     });
+    const { user } = useAuth();
 
     useEffect(() => {
         loadClasses();
@@ -44,6 +45,22 @@ const ClassBooking = () => {
             alert(error.response?.data?.message || 'Failed to book class');
         } finally {
             setProcessingId(null); // End processing
+        }
+    };
+
+    const handleUnbook = async (classId) => {
+        if (!window.confirm('Are you sure you want to unbook this course? This will cancel all future sessions.')) return;
+
+        setProcessingId(classId);
+        try {
+            await bookingService.unbookCourse(classId);
+            alert('Course unbooked successfully!');
+            loadClasses(); // Refresh
+        } catch (error) {
+            console.error("Unbooking failed", error);
+            alert(error.response?.data?.message || 'Failed to unbook course');
+        } finally {
+            setProcessingId(null);
         }
     };
 
@@ -88,42 +105,56 @@ const ClassBooking = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {classes.length > 0 ? (
-                        classes.map((cls) => (
-                            <div key={cls._id} className="card hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{cls.name}</h3>
-                                        <p className="text-primary-600 font-medium text-sm">{cls.trainerId?.name || 'Instructor'}</p>
+                        classes.map((cls) => {
+                            const isBooked = cls.attendees && cls.attendees.includes(user?._id);
+                            
+                            return (
+                                <div key={cls._id} className="card hover:shadow-md transition-shadow">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-gray-900">{cls.name}</h3>
+                                            <p className="text-primary-600 font-medium text-sm">{cls.trainerId?.name || 'Instructor'}</p>
+                                        </div>
+                                        <span className="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full font-medium">
+                                            {cls.duration} min
+                                        </span>
                                     </div>
-                                    <span className="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full font-medium">
-                                        {cls.duration} min
-                                    </span>
-                                </div>
 
-                                <div className="mt-4 space-y-2 text-sm text-gray-600">
-                                    <div className="flex items-center">
-                                        <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        {new Date(cls.startTime).toLocaleDateString()}
+                                    <div className="mt-4 space-y-2 text-sm text-gray-600">
+                                        <div className="flex items-center">
+                                            <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            {new Date(cls.startTime).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            {new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                            {cls.attendees?.length || 0} / {cls.capacity} spots taken
+                                        </div>
                                     </div>
-                                    <div className="flex items-center">
-                                        <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        {new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <svg className="w-4 h-4 mr-2 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                        {cls.attendees?.length || 0} / {cls.capacity} spots taken
-                                    </div>
-                                </div>
 
-                                <button
-                                    onClick={() => handleBook(cls._id)}
-                                    className={`w-full mt-4 btn-primary ${processingId === cls._id ? 'opacity-75 cursor-not-allowed' : ''}`}
-                                    disabled={cls.isFull || processingId === cls._id}
-                                >
-                                    {processingId === cls._id ? 'Processing...' : (cls.isFull ? 'Join Waitlist' : 'Book Class')}
-                                </button>
-                            </div>
-                        ))
+                                    {isBooked ? (
+                                        <button
+                                            onClick={() => handleUnbook(cls._id)}
+                                            className={`w-full mt-4 btn-secondary text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 ${processingId === cls._id ? 'opacity-75 cursor-not-allowed' : ''}`}
+                                            disabled={processingId === cls._id}
+                                        >
+                                            {processingId === cls._id ? 'Processing...' : 'Unbook Course'}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleBook(cls._id)}
+                                            className={`w-full mt-4 btn-primary ${processingId === cls._id ? 'opacity-75 cursor-not-allowed' : ''}`}
+                                            disabled={cls.isFull || processingId === cls._id}
+                                        >
+                                            {processingId === cls._id ? 'Processing...' : (cls.isFull ? 'Join Waitlist' : 'Book Class')}
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })
                     ) : (
                         <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-100">
                             <p className="text-lg">No classes scheduled for this period.</p>

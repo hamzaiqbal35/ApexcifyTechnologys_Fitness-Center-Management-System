@@ -25,11 +25,12 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                 if (element && !scannerRef.current) {
                     try {
                         const scanner = new Html5QrcodeScanner(
-                            "reader", 
-                            { 
-                                fps: 60, // Increased for faster scanning
+                            "reader",
+                            {
+                                fps: 15, // Balanced for performance and speed
                                 qrbox: { width: 250, height: 250 },
-                                aspectRatio: 1.0
+                                aspectRatio: 1.0,
+                                disableFlip: true,
                             },
                             /* verbose= */ false
                         );
@@ -40,7 +41,7 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                     }
                 }
             }, 100);
-            
+
             return () => {
                 clearTimeout(timeoutId);
                 if (scannerRef.current) {
@@ -53,9 +54,9 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
         } else {
             // Cleanup if switching away from scanner
             if (scannerRef.current) {
-                 try {
-                        scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
-                    } catch (e) { console.error("Clear error", e); }
+                try {
+                    scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
+                } catch (e) { console.error("Clear error", e); }
                 scannerRef.current = null;
             }
         }
@@ -65,7 +66,7 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
         setLoading(true);
         try {
             const attendanceData = await attendanceService.getClassAttendance(classId);
-            
+
             if (attendanceData.bookings) {
                 const checkedInMap = new Map();
                 attendanceData.attendance.forEach(a => {
@@ -77,17 +78,17 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                     const member = booking.memberId || { _id: 'unknown', name: 'Unknown User', email: 'N/A' };
                     // Handle case where member might be null/deleted
                     const memberId = member._id || 'unknown';
-                    
+
                     return {
                         _id: memberId,
-                        bookingId: booking._id, 
+                        bookingId: booking._id,
                         name: member.name || 'Unknown',
                         email: member.email || 'N/A',
-                        checkedIn: checkedInMap.has(memberId),
-                        checkInTime: checkedInMap.get(memberId)
+                        checkedIn: checkedInMap.has(memberId) || booking.status === 'checked_in',
+                        checkInTime: checkedInMap.get(memberId) || booking.updatedAt // Fallback to booking update time if map fails
                     };
                 });
-                
+
                 setAttendees(roster);
             } else {
                 setAttendees([]);
@@ -117,7 +118,7 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
 
     const handleScanSuccess = async (decodedText, decodedResult) => {
         if (isProcessing.current) return;
-        
+
         isProcessing.current = true;
 
         try {
@@ -129,10 +130,10 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
 
             await attendanceService.checkInWithQR(bookingId, token);
             setScanResult({ success: true, message: `Checked in successfully!` });
-            
+
             // Refresh roster
             await loadData();
-            
+
             // Reset processing flag after delay
             setTimeout(() => {
                 setScanResult(null);
@@ -144,9 +145,9 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
             // Don't show error for every frame if it's just invalid format momentarily, 
             // but if it's a parseable error, show it.
             // Only show error if we are sure it's a failed attempt
-            
+
             setScanResult({ success: false, message: error.response?.data?.message || error.message || "Invalid QR Code" });
-            
+
             setTimeout(() => {
                 setScanResult(null);
                 isProcessing.current = false;
@@ -171,13 +172,13 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                 </div>
 
                 <div className="flex border-b border-gray-200 mb-4">
-                    <button 
+                    <button
                         className={`py-2 px-4 ${view === 'roster' ? 'border-b-2 border-primary-600 text-primary-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
                         onClick={() => setView('roster')}
                     >
                         Roster List
                     </button>
-                    <button 
+                    <button
                         className={`py-2 px-4 ${view === 'scanner' ? 'border-b-2 border-primary-600 text-primary-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
                         onClick={() => setView('scanner')}
                     >
