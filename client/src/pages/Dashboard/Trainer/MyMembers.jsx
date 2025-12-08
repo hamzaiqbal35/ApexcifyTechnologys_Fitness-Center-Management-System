@@ -72,7 +72,7 @@ const MyMembers = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
                                             className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
-                                            onClick={() => alert('View Details/Assign Plan coming soon!')} // Placeholder for new action
+                                            onClick={() => alert('View Details coming soon!')} 
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />

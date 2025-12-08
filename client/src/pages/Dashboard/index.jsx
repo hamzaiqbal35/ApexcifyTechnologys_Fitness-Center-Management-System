@@ -24,6 +24,7 @@ import MyClasses from './Trainer/MyClasses';
 import MyMembers from './Trainer/MyMembers';
 import TrainerAttendance from './Trainer/TrainerAttendance';
 import MyPlans from './Member/MyPlans';
+import Profile from './Common/Profile';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -60,6 +61,7 @@ const Dashboard = () => {
                 {/* Shared/conditional Routes */}
                 <Route path="plans" element={user?.role === 'member' ? <Plans /> : <ManagePlans />} />
                 <Route path="subscription" element={<Subscription />} />
+                <Route path="profile" element={<Profile />} />
             </Route>
         </Routes>
     );
