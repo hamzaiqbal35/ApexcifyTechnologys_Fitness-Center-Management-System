@@ -18,7 +18,6 @@ import ManagePlans from './Trainer/ManagePlans';
 // New Pages
 import AttendanceLogs from './Admin/AttendanceLogs';
 import PaymentHistory from './Admin/PaymentHistory';
-import Notifications from './Admin/Notifications';
 import ManageMembershipPlans from './Admin/ManageMembershipPlans';
 
 import MyClasses from './Trainer/MyClasses';
@@ -48,7 +47,6 @@ const Dashboard = () => {
                 <Route path="admin/memberships" element={<ManageMembershipPlans />} />
                 <Route path="admin/attendance" element={<AttendanceLogs />} />
                 <Route path="admin/payments" element={<PaymentHistory />} />
-                <Route path="admin/notifications" element={<Notifications />} />
 
                 {/* Trainer Routes */}
                 <Route path="my-classes" element={<MyClasses />} />

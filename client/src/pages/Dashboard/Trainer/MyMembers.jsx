@@ -16,7 +16,7 @@ const MyMembers = () => {
                     _id: m._id,
                     name: m.name,
                     email: m.email,
-                    plan: 'Standard', // Placeholder until subscription data is aggregated
+                    plan: m.plan || 'No Plan',
                     progress: 'Active' // Placeholder
                 }));
                 setMembers(realMembers);
@@ -36,30 +36,50 @@ const MyMembers = () => {
             <div className="card">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50/50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name & Contact</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {members.map((member) => (
-                                <tr key={member._id}>
+                                <tr key={member._id} className="hover:bg-gray-50/50 transition-colors duration-150">
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                                        <div className="text-xs text-gray-500">{member.email}</div>
+                                        <div className="flex items-center">
+                                            <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-100 to-blue-100 flex items-center justify-center text-primary-700 font-bold">
+                                                {member.name.charAt(0)}
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-semibold text-gray-900">{member.name}</div>
+                                                <div className="text-xs text-gray-500">{member.email}</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.plan}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            ${member.progress === 'On Track' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                            {member.plan}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            ${member.progress === 'On Track' ? 'bg-green-100 text-green-800' : 'bg-green-100 text-green-800'}`}>
                                             {member.progress}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button className="text-primary-600 hover:text-primary-900">View Progress</button>
+                                        <button
+                                            className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
+                                            onClick={() => alert('View Details/Assign Plan coming soon!')} // Placeholder for new action
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                            </svg>
+                                            View Details
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

@@ -142,6 +142,7 @@ const getMyMembers = async (req, res) => {
     try {
         const Booking = require('../models/Booking');
         const Class = require('../models/Class');
+        const Subscription = require('../models/Subscription');
 
         // 1. Get all classes by this trainer
         const classes = await Class.find({ trainerId: req.user._id }).select('_id');
@@ -157,10 +158,20 @@ const getMyMembers = async (req, res) => {
         // 3. Get user details for these members
         const members = await User.find({ _id: { $in: bookings } }).select('name email profile');
 
-        // Optional: Attach active plan info? For now just return users.
-        // We could aggregate Subscription data too if needed.
+        // 4. Attach active plan info
+        const membersWithPlan = await Promise.all(members.map(async (member) => {
+            const activeSub = await Subscription.findOne({
+                userId: member._id,
+                status: { $in: ['active', 'trialing'] }
+            }).populate('planId', 'name');
 
-        res.json(members);
+            return {
+                ...member.toObject(),
+                plan: activeSub?.planId?.name || 'No Plan'
+            };
+        }));
+
+        res.json(membersWithPlan);
     } catch (error) {
         console.error("Error fetching my members:", error);
         res.status(500).json({ message: "Server error" });

@@ -7,7 +7,6 @@ const TrainerDashboard = () => {
     const { user } = useAuth();
     const [upcomingClasses, setUpcomingClasses] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -42,26 +41,16 @@ const TrainerDashboard = () => {
                 <div className="card">
                     <h3 className="text-sm font-medium text-gray-500 uppercase">Quick Actions</h3>
                     <div className="mt-4 flex gap-2">
-                        <Link to="/dashboard/plans" className="btn-secondary text-sm">Upload Plan</Link>
-                        <button onClick={() => setIsAvailabilityModalOpen(true)} className="btn-primary text-sm">
-                            Set Availability
-                        </button>
+                        <Link to="/dashboard/plans" className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 hover:scale-[1.02] transition-all duration-300 transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Upload New Plan
+                        </Link>
                     </div>
                 </div>
             </div>
 
-            {/* Availability Modal */}
-            {isAvailabilityModalOpen && (
-                <AvailabilityModal
-                    onClose={() => setIsAvailabilityModalOpen(false)}
-                    currentAvailability={user?.availability}
-                    onSave={(updatedUser) => {
-                        // Ideally update local auth context or reload
-                        // For now just close, user context might need refresh if deeply integrated
-                        setIsAvailabilityModalOpen(false);
-                    }}
-                />
-            )}
 
             {/* Upcoming Schedule */}
             <div className="card">
