@@ -76,9 +76,10 @@ const ClassBooking = () => {
                 {/* Filters */}
                 <div className="flex gap-4">
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">From</label>
+                        <label htmlFor="startDate" className="block text-xs font-medium text-gray-700 mb-1">From</label>
                         <input
                             type="date"
+                            id="startDate"
                             name="startDate"
                             value={filters.startDate}
                             onChange={handleDateChange}
@@ -86,9 +87,10 @@ const ClassBooking = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">To</label>
+                        <label htmlFor="endDate" className="block text-xs font-medium text-gray-700 mb-1">To</label>
                         <input
                             type="date"
+                            id="endDate"
                             name="endDate"
                             value={filters.endDate}
                             onChange={handleDateChange}
@@ -107,7 +109,7 @@ const ClassBooking = () => {
                     {classes.length > 0 ? (
                         classes.map((cls) => {
                             const isBooked = cls.attendees && cls.attendees.includes(user?._id);
-                            
+
                             return (
                                 <div key={cls._id} className="card hover:shadow-md transition-shadow">
                                     <div className="flex justify-between items-start">

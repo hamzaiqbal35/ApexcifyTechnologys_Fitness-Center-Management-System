@@ -17,8 +17,6 @@ const ManageClasses = () => {
         duration: 60,
         capacity: 20,
         location: 'Main Gym Floor',
-        capacity: 20,
-        location: 'Main Gym Floor',
         trainerId: '', // Add trainerId to form data
         isRecurring: false,
         recurrenceCount: 4
@@ -74,7 +72,6 @@ const ManageClasses = () => {
             }
             setIsModalOpen(false);
             setEditingId(null);
-            setEditingId(null);
             setFormData({ name: '', description: '', startTime: '', duration: 60, capacity: 20, location: 'Main Gym Floor', isRecurring: false, recurrenceCount: 4 });
             loadClasses();
         } catch (error) {
@@ -105,7 +102,6 @@ const ManageClasses = () => {
             duration: cls.duration || 60, // Default to 60 if undefined
             capacity: cls.capacity,
             location: cls.location || 'Main Gym Floor',
-            location: cls.location || 'Main Gym Floor',
             trainerId: (cls.trainerId && (cls.trainerId._id || cls.trainerId)) || '', // Handle null/undefined trainer
             isRecurring: false, // Default to false for edits
             recurrenceCount: 4
@@ -126,7 +122,6 @@ const ManageClasses = () => {
                             startTime: '',
                             duration: 60,
                             capacity: 20,
-                            location: 'Main Gym Floor',
                             location: 'Main Gym Floor',
                             trainerId: '',
                             isRecurring: false,
@@ -171,8 +166,10 @@ const ManageClasses = () => {
                         <h3 className="text-lg font-bold mb-4">{editingId ? 'Edit Class' : 'Create New Class'}</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Class Name</label>
+                                <label htmlFor="className" className="block text-sm font-medium text-gray-700">Class Name</label>
                                 <input
+                                    id="className"
+                                    name="className"
                                     type="text"
                                     required
                                     className="input-field mt-1"
@@ -182,8 +179,10 @@ const ManageClasses = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Assigned Trainer</label>
+                                <label htmlFor="trainerId" className="block text-sm font-medium text-gray-700">Assigned Trainer</label>
                                 <select
+                                    id="trainerId"
+                                    name="trainerId"
                                     required
                                     className="input-field mt-1"
                                     value={formData.trainerId}
@@ -199,16 +198,20 @@ const ManageClasses = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Description</label>
+                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
                                 <textarea
+                                    id="description"
+                                    name="description"
                                     className="input-field mt-1"
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 ></textarea>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Location</label>
+                                <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
                                 <input
+                                    id="location"
+                                    name="location"
                                     type="text"
                                     required
                                     className="input-field mt-1"
@@ -217,8 +220,10 @@ const ManageClasses = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Start Time</label>
+                                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">Start Time</label>
                                 <input
+                                    id="startTime"
+                                    name="startTime"
                                     type="datetime-local"
                                     required
                                     className="input-field mt-1"
@@ -228,8 +233,10 @@ const ManageClasses = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Duration (min)</label>
+                                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700">Duration (min)</label>
                                     <input
+                                        id="duration"
+                                        name="duration"
                                         type="number"
                                         required
                                         className="input-field mt-1"
@@ -238,8 +245,10 @@ const ManageClasses = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Capacity</label>
+                                    <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">Capacity</label>
                                     <input
+                                        id="capacity"
+                                        name="capacity"
                                         type="number"
                                         required
                                         className="input-field mt-1"
@@ -255,6 +264,7 @@ const ManageClasses = () => {
                                         <input
                                             type="checkbox"
                                             id="isRecurring"
+                                            name="isRecurring"
                                             checked={formData.isRecurring}
                                             onChange={e => setFormData({ ...formData, isRecurring: e.target.checked })}
                                             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"

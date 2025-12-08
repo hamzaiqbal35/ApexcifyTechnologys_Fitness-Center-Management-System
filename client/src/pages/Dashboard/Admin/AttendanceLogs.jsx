@@ -94,9 +94,10 @@ const AttendanceLogs = () => {
             {/* Filters */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     <input
                         type="date"
+                        id="startDate"
                         name="startDate"
                         value={dateRange.startDate}
                         onChange={handleDateChange}
@@ -104,9 +105,10 @@ const AttendanceLogs = () => {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                     <input
                         type="date"
+                        id="endDate"
                         name="endDate"
                         value={dateRange.endDate}
                         onChange={handleDateChange}

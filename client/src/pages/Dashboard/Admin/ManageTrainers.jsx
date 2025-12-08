@@ -127,6 +127,9 @@ const ManageTrainers = () => {
                     <div className="relative">
                         <input
                             type="text"
+                            name="search"
+                            id="search-trainers"
+                            aria-label="Search trainers"
                             placeholder="Search trainers..."
                             className="pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none shadow-sm transition-all w-64"
                             value={searchTerm}
@@ -174,7 +177,7 @@ const ManageTrainers = () => {
                         <div key={trainer._id} className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative overflow-hidden">
                             {/* Status Indicator Stripe */}
                             <div className={`absolute top-0 left-0 w-full h-1 ${trainer.isActive ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-red-400 to-orange-500'}`}></div>
-                            
+
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white shadow-lg ${trainer.isActive ? 'bg-gradient-to-br from-primary-500 to-indigo-600' : 'bg-gray-400'}`}>
@@ -186,7 +189,7 @@ const ManageTrainers = () => {
                                     </div>
                                 </div>
                                 <div className="">
-                                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${trainer.isActive ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${trainer.isActive ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
                                         {trainer.isActive ? 'Active' : 'Suspended'}
                                     </span>
                                 </div>
@@ -270,43 +273,43 @@ const ManageTrainers = () => {
                             <form onSubmit={handleCreateOrUpdateTrainer} className="px-8 py-6 space-y-5">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="label">Full Name</label>
+                                        <label htmlFor="name" className="label">Full Name</label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                             </div>
-                                            <input type="text" required className="input-field pl-10" placeholder="e.g. John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                            <input type="text" id="name" name="name" required className="input-field pl-10" placeholder="e.g. John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="label">Email Address</label>
+                                        <label htmlFor="email" className="label">Email Address</label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
                                             </div>
-                                            <input type="email" required className="input-field pl-10" placeholder="e.g. john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                            <input type="email" id="email" name="email" required className="input-field pl-10" placeholder="e.g. john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="label">Password <span className="text-gray-400 font-normal text-xs">{isEditing ? '(Leave blank to stay)' : '(Required)'}</span></label>
+                                        <label htmlFor="password" className="label">Password <span className="text-gray-400 font-normal text-xs">{isEditing ? '(Leave blank to stay)' : '(Required)'}</span></label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                                             </div>
-                                            <input type="password" required={!isEditing} className="input-field pl-10" placeholder={isEditing ? "••••••••" : "Choose a secure password"} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                            <input type="password" id="password" name="password" required={!isEditing} className="input-field pl-10" placeholder={isEditing ? "••••••••" : "Choose a secure password"} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="label">Specialization</label>
-                                            <input type="text" className="input-field" placeholder="e.g. Yoga" value={formData.specialization} onChange={e => setFormData({ ...formData, specialization: e.target.value })} />
+                                            <label htmlFor="specialization" className="label">Specialization</label>
+                                            <input type="text" id="specialization" name="specialization" className="input-field" placeholder="e.g. Yoga" value={formData.specialization} onChange={e => setFormData({ ...formData, specialization: e.target.value })} />
                                         </div>
                                         <div>
-                                            <label className="label">Experience (Yrs)</label>
-                                            <input type="number" className="input-field" placeholder="e.g. 5" value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
+                                            <label htmlFor="experience" className="label">Experience (Yrs)</label>
+                                            <input type="number" id="experience" name="experience" className="input-field" placeholder="e.g. 5" value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
                                         </div>
                                     </div>
                                 </div>

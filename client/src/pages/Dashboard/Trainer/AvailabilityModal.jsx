@@ -66,19 +66,24 @@ const AvailabilityModal = ({ onClose, currentAvailability, onSave }) => {
                                 <div className="w-32 flex items-center gap-2">
                                     <input
                                         type="checkbox"
+                                        id={`available-${slot.day}`}
+                                        name={`available-${slot.day}`}
                                         checked={slot.isAvailable}
                                         onChange={(e) => handleChange(index, 'isAvailable', e.target.checked)}
                                         className="rounded text-primary-600 focus:ring-primary-500"
                                     />
-                                    <span className={`font-medium ${slot.isAvailable ? 'text-gray-900' : 'text-gray-400'}`}>
+                                    <label htmlFor={`available-${slot.day}`} className={`font-medium ${slot.isAvailable ? 'text-gray-900' : 'text-gray-400'} cursor-pointer select-none`}>
                                         {slot.day}
-                                    </span>
+                                    </label>
                                 </div>
 
                                 {slot.isAvailable && (
                                     <div className="flex items-center gap-2 flex-1">
                                         <input
                                             type="time"
+                                            id={`start-${slot.day}`}
+                                            name={`start-${slot.day}`}
+                                            aria-label={`Start time for ${slot.day}`}
                                             value={slot.startTime}
                                             onChange={(e) => handleChange(index, 'startTime', e.target.value)}
                                             className="input-field py-1"
@@ -87,6 +92,9 @@ const AvailabilityModal = ({ onClose, currentAvailability, onSave }) => {
                                         <span className="text-gray-400">to</span>
                                         <input
                                             type="time"
+                                            id={`end-${slot.day}`}
+                                            name={`end-${slot.day}`}
+                                            aria-label={`End time for ${slot.day}`}
                                             value={slot.endTime}
                                             onChange={(e) => handleChange(index, 'endTime', e.target.value)}
                                             className="input-field py-1"

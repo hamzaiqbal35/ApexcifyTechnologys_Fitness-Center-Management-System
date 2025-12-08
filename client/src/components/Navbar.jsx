@@ -63,7 +63,6 @@ const Navbar = () => {
         { name: 'Classes', path: '/dashboard/classes' },
         { name: 'My Bookings', path: '/dashboard/my-bookings' },
         { name: 'My Plans', path: '/dashboard/my-plans' },
-        { name: 'History', path: '/dashboard/my-attendance' },
         { name: 'Billing', path: '/dashboard/subscription' },
     ];
 

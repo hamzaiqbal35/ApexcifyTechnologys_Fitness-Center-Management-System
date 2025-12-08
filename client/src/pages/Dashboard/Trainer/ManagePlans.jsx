@@ -194,9 +194,11 @@ const ManagePlans = () => {
                         <h3 className="text-lg font-bold mb-4">Upload {activeTab === 'workout' ? 'Workout' : 'Diet'} Plan</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Title</label>
+                                <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                 <input
                                     type="text"
+                                    id="title"
+                                    name="title"
                                     required
                                     className="input-field mt-1"
                                     value={formData.title}
@@ -204,8 +206,10 @@ const ManagePlans = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Description</label>
+                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
                                 <textarea
+                                    id="description"
+                                    name="description"
                                     className="input-field mt-1"
                                     rows="3"
                                     value={formData.description}
@@ -215,8 +219,10 @@ const ManagePlans = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Visibility</label>
+                                    <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">Visibility</label>
                                     <select
+                                        id="visibility"
+                                        name="visibility"
                                         className="input-field mt-1"
                                         value={formData.visibility}
                                         onChange={e => setFormData({ ...formData, visibility: e.target.value })}
@@ -231,8 +237,10 @@ const ManagePlans = () => {
                                 {activeTab === 'workout' ? (
                                     <>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Difficulty</label>
+                                            <label htmlFor="difficultyLevel" className="block text-sm font-medium text-gray-700">Difficulty</label>
                                             <select
+                                                id="difficultyLevel"
+                                                name="difficultyLevel"
                                                 className="input-field mt-1"
                                                 value={formData.difficultyLevel}
                                                 onChange={e => setFormData({ ...formData, difficultyLevel: e.target.value })}
@@ -243,9 +251,11 @@ const ManagePlans = () => {
                                             </select>
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700">Goal</label>
+                                            <label htmlFor="goal" className="block text-sm font-medium text-gray-700">Goal</label>
                                             <input
                                                 type="text"
+                                                id="goal"
+                                                name="goal"
                                                 className="input-field mt-1"
                                                 value={formData.goal}
                                                 onChange={e => setFormData({ ...formData, goal: e.target.value })}
@@ -255,17 +265,21 @@ const ManagePlans = () => {
                                 ) : (
                                     <>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Calories</label>
+                                            <label htmlFor="calories" className="block text-sm font-medium text-gray-700">Calories</label>
                                             <input
                                                 type="number"
+                                                id="calories"
+                                                name="calories"
                                                 className="input-field mt-1"
                                                 value={formData.calories}
                                                 onChange={e => setFormData({ ...formData, calories: e.target.value })}
                                             />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700">Diet Type</label>
+                                            <label htmlFor="dietType" className="block text-sm font-medium text-gray-700">Diet Type</label>
                                             <select
+                                                id="dietType"
+                                                name="dietType"
                                                 className="input-field mt-1"
                                                 value={formData.dietType}
                                                 onChange={e => setFormData({ ...formData, dietType: e.target.value })}
@@ -283,9 +297,11 @@ const ManagePlans = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">PDF File</label>
+                                <label htmlFor="file" className="block text-sm font-medium text-gray-700">PDF File</label>
                                 <input
                                     type="file"
+                                    id="file"
+                                    name="file"
                                     accept=".pdf"
                                     required
                                     className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"

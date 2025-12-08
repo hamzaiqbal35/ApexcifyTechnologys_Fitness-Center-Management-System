@@ -25,7 +25,6 @@ import MyClasses from './Trainer/MyClasses';
 import MyMembers from './Trainer/MyMembers';
 import TrainerAttendance from './Trainer/TrainerAttendance';
 import MyPlans from './Member/MyPlans';
-import MemberAttendance from './Member/MemberAttendance';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -59,7 +58,6 @@ const Dashboard = () => {
                 {/* Member Routes */}
                 <Route path="my-bookings" element={<MyBookings />} />
                 <Route path="my-plans" element={<MyPlans />} />
-                <Route path="my-attendance" element={<MemberAttendance />} />
 
                 {/* Shared/conditional Routes */}
                 <Route path="plans" element={user?.role === 'member' ? <Plans /> : <ManagePlans />} />
