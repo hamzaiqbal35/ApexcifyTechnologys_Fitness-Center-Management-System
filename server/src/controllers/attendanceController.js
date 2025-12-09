@@ -3,6 +3,7 @@ const Booking = require('../models/Booking');
 const Class = require('../models/Class');
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
+const Subscription = require('../models/Subscription');
 const { validateToken } = require('../utils/qrService');
 
 /**
@@ -37,6 +38,19 @@ const checkInWithQR = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized to check in this booking' });
         }
 
+        // --- SUBSCRIPTION CHECK START ---
+        // Even if booked, check if membership is STILL active
+        const subscription = await Subscription.findOne({
+            userId: booking.memberId,
+            status: { $in: ['active', 'trialing'] },
+            currentPeriodEnd: { $gte: new Date() }
+        });
+
+        if (!subscription) {
+            return res.status(403).json({ message: 'Access Denied: Active subscription required for attendance.' });
+        }
+        // --- SUBSCRIPTION CHECK END ---
+
         // Check if already checked in
         const existingAttendance = await Attendance.findOne({ bookingId });
 
@@ -48,11 +62,6 @@ const checkInWithQR = async (req, res) => {
         const now = new Date();
         const classStart = new Date(booking.classId.startTime);
         const classEnd = new Date(booking.classId.endTime);
-
-        // Allow check-in 15 mins before start? or strictly start time?
-        // User said: "before date and time start time"
-        // Let's stick to strictly >= startTime for now, maybe with a small buffer if needed later.
-        // But for now strict as requested.
 
         if (now < classStart) {
             return res.status(400).json({ message: 'Class has not started yet. Attendance cannot be marked.' });
@@ -122,6 +131,18 @@ const manualCheckIn = async (req, res) => {
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found for this member' });
         }
+
+        // --- SUBSCRIPTION CHECK START ---
+        const subscription = await Subscription.findOne({
+            userId: memberId,
+            status: { $in: ['active', 'trialing'] },
+            currentPeriodEnd: { $gte: new Date() }
+        });
+
+        if (!subscription) {
+            return res.status(403).json({ message: 'Access Denied: Member does not have an active subscription.' });
+        }
+        // --- SUBSCRIPTION CHECK END ---
 
         // Check if already checked in
         const existingAttendance = await Attendance.findOne({ bookingId: booking._id });
