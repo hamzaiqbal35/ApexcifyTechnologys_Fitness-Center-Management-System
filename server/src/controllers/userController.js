@@ -282,7 +282,7 @@ const getMyMembers = async (req, res) => {
         const bookings = await Booking.find({ classId: { $in: classIds } }).distinct('memberId');
 
         // 3. Get user details for these members
-        const members = await User.find({ _id: { $in: bookings } }).select('name email profile');
+        const members = await User.find({ _id: { $in: bookings } }).select('name email profile avatar');
 
         // 4. Attach active plan info
         const membersWithPlan = await Promise.all(members.map(async (member) => {

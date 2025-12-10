@@ -5,9 +5,10 @@ import { attendanceService } from '../../../services/attendanceService';
 const AttendanceModal = ({ classId, onClose, classDetails }) => {
     const [attendees, setAttendees] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [view, setView] = useState('roster'); // 'roster' | 'scanner'
-    const [scanResult, setScanResult] = useState(null);
+    const [view, setView] = useState('roster'); // Default to roster (list view)
+    const [scanResult, setScanResult] = useState(null); // { success: boolean, message: string, memberName?: string }
     const scannerRef = useRef(null);
+    const isProcessing = useRef(false);
 
     useEffect(() => {
         loadData();
@@ -16,23 +17,21 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
     // Handle Scanner Lifecycle
     useEffect(() => {
         if (view === 'scanner') {
-            // Give DOM time to render the #reader div
             const timeoutId = setTimeout(() => {
-                // Check if scanner instance already exists to prevent duplicates
-                // Note: html5-qrcode might attach to DOM ID so we must be careful with StrictMode
-                // We rely on cleanup to clear it.
                 const element = document.getElementById("reader");
                 if (element && !scannerRef.current) {
                     try {
                         const scanner = new Html5QrcodeScanner(
                             "reader",
                             {
-                                fps: 15, // Balanced for performance and speed
-                                qrbox: { width: 250, height: 250 },
+                                fps: 15,
+                                qrbox: { width: 280, height: 280 }, // Layout fix
                                 aspectRatio: 1.0,
                                 disableFlip: true,
+                                supportedScanTypes: [],
+                                rememberLastUsedCamera: true
                             },
-                            /* verbose= */ false
+                            false
                         );
                         scanner.render(handleScanSuccess, handleScanFailure);
                         scannerRef.current = scanner;
@@ -52,7 +51,6 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                 }
             };
         } else {
-            // Cleanup if switching away from scanner
             if (scannerRef.current) {
                 try {
                     scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
@@ -76,7 +74,6 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
 
                 const roster = attendanceData.bookings.map(booking => {
                     const member = booking.memberId || { _id: 'unknown', name: 'Unknown User', email: 'N/A' };
-                    // Handle case where member might be null/deleted
                     const memberId = member._id || 'unknown';
 
                     return {
@@ -85,7 +82,7 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                         name: member.name || 'Unknown',
                         email: member.email || 'N/A',
                         checkedIn: checkedInMap.has(memberId) || booking.status === 'checked_in',
-                        checkInTime: checkedInMap.get(memberId) || booking.updatedAt // Fallback to booking update time if map fails
+                        checkInTime: checkedInMap.get(memberId) || booking.updatedAt
                     };
                 });
 
@@ -114,8 +111,6 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
         }
     };
 
-    const isProcessing = useRef(false);
-
     const handleScanSuccess = async (decodedText, decodedResult) => {
         if (isProcessing.current) return;
 
@@ -128,30 +123,37 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
 
             if (!bookingId || !token) throw new Error("Invalid QR Code format");
 
-            await attendanceService.checkInWithQR(bookingId, token);
-            setScanResult({ success: true, message: `Checked in successfully!` });
+            // Optimistic check for name
+            const matchedAttendee = attendees.find(a => a.bookingId === bookingId);
+            const memberName = matchedAttendee ? matchedAttendee.name : "Member";
 
-            // Refresh roster
+            await attendanceService.checkInWithQR(bookingId, token);
+
+            // Success Feedback
+            setScanResult({
+                success: true,
+                message: "Check-in Successful!",
+                memberName: memberName
+            });
+
             await loadData();
 
-            // Reset processing flag after delay
             setTimeout(() => {
                 setScanResult(null);
                 isProcessing.current = false;
-            }, 2000);
+            }, 2500);
 
         } catch (error) {
             console.error("Scan failed", error);
-            // Don't show error for every frame if it's just invalid format momentarily, 
-            // but if it's a parseable error, show it.
-            // Only show error if we are sure it's a failed attempt
-
-            setScanResult({ success: false, message: error.response?.data?.message || error.message || "Invalid QR Code" });
+            setScanResult({
+                success: false,
+                message: error.response?.data?.message || error.message || "Invalid QR Code"
+            });
 
             setTimeout(() => {
                 setScanResult(null);
                 isProcessing.current = false;
-            }, 3000);
+            }, 2500);
         }
     };
 
@@ -160,67 +162,89 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900">Class Attendance</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+
+                {/* Header */}
+                <div className="bg-white p-5 border-b border-gray-100 flex justify-between items-center z-10 sticky top-0">
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                            </svg>
+                            Attendance Manager
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {classDetails.name} • {new Date(classDetails.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <div className="flex border-b border-gray-200 mb-4">
+                {/* Tabs */}
+                <div className="flex p-2 bg-gray-50 gap-2">
                     <button
-                        className={`py-2 px-4 ${view === 'roster' ? 'border-b-2 border-primary-600 text-primary-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${view === 'roster' ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:bg-white hover:text-primary-600'}`}
                         onClick={() => setView('roster')}
                     >
-                        Roster List
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            Roster ({attendees.filter(a => a.checkedIn).length}/{attendees.length})
+                        </div>
                     </button>
                     <button
-                        className={`py-2 px-4 ${view === 'scanner' ? 'border-b-2 border-primary-600 text-primary-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${view === 'scanner' ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:bg-white hover:text-primary-600'}`}
                         onClick={() => setView('scanner')}
                     >
-                        Scan QR Code
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Scan QR
+                        </div>
                     </button>
                 </div>
 
-                <div className="mb-2">
-                    <p className="text-sm text-gray-500">
-                        {classDetails.name} • {new Date(classDetails.startTime).toLocaleString()}
-                    </p>
-                    <p className="text-sm font-medium mt-1">
-                        Checked In: {attendees.filter(a => a.checkedIn).length} / {attendees.length}
-                    </p>
-                </div>
-
-                <div className="flex-1 overflow-y-auto min-h-[300px]">
+                {/* Content Area */}
+                <div className="flex-1 overflow-hidden relative bg-gray-50 flex flex-col min-h-[500px]">
                     {view === 'roster' ? (
-                        <div className="divide-y divide-gray-100">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {loading ? (
-                                <p className="text-center py-4">Loading roster...</p>
+                                <div className="flex flex-col items-center justify-center py-10">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-2"></div>
+                                    <p className="text-gray-500 text-sm">Loading roster...</p>
+                                </div>
                             ) : attendees.length > 0 ? (
                                 attendees.map(member => (
-                                    <div key={member.bookingId || member._id} className="py-3 flex justify-between items-center">
+                                    <div key={member.bookingId || member._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition-shadow">
                                         <div className="flex items-center">
-                                            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600">
+                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-inner ${member.checkedIn ? 'bg-green-500' : 'bg-gray-300'}`}>
                                                 {member.name?.charAt(0) || '?'}
                                             </div>
                                             <div className="ml-3">
-                                                <p className="text-sm font-medium text-gray-900">{member.name}</p>
+                                                <p className="text-sm font-bold text-gray-900">{member.name}</p>
                                                 <p className="text-xs text-gray-500">{member.email}</p>
                                             </div>
                                         </div>
                                         <div>
                                             {member.checkedIn ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Checked In {new Date(member.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
+                                                <div className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                                    <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    <span className="text-xs font-bold">Done</span>
+                                                </div>
                                             ) : (
                                                 <button
                                                     onClick={() => handleCheckIn(member._id)}
-                                                    className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                                                    className="text-xs font-semibold bg-white border border-primary-600 text-primary-600 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
                                                 >
                                                     Mark Present
                                                 </button>
@@ -229,28 +253,83 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-center py-6 text-gray-500">No members booked this class.</p>
+                                <div className="text-center py-10 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <p className="text-gray-500">No members booked.</p>
+                                </div>
                             )}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full">
-                            <div id="reader" className="w-full max-w-sm"></div>
+                        <div className="flex-1 flex flex-col items-center justify-center relative bg-black">
+                            {/* Scanner Viewfinder Overlay */}
+                            <div className="absolute inset-0 z-0 overflow-hidden">
+                                <div id="reader" className="w-full h-full object-cover opacity-80"></div>
+                            </div>
+
+                            {/* Custom Overlay UI on top of camera */}
+                            <div className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-center">
+                                <div className="w-64 h-64 border-2 border-white/50 rounded-3xl relative">
+                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 rounded-tl-xl"></div>
+                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-xl"></div>
+                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-xl"></div>
+                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-xl"></div>
+
+                                    {/* Scanning Line Animation */}
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-primary-400 bg-opacity-50 shadow-[0_0_10px_rgba(59,130,246,0.8)] animate-[scan_2s_infinite]"></div>
+                                </div>
+                                <p className="text-white/80 mt-8 text-sm font-medium bg-black/40 px-4 py-2 rounded-full backdrop-blur-md">
+                                    Position QR code within frame
+                                </p>
+                            </div>
+
+                            {/* SUCCESS / ERROR OVERLAY */}
                             {scanResult && (
-                                <div className={`mt-4 p-3 rounded text-sm font-medium w-full text-center ${scanResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                    {scanResult.message}
+                                <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center backdrop-blur-md transition-all duration-300 ${scanResult.success ? 'bg-green-500/90' : 'bg-red-500/90'}`}>
+                                    <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center max-w-[80%] text-center animate-scale-in">
+                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${scanResult.success ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                            {scanResult.success ? (
+                                                <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                        <h4 className={`text-2xl font-bold mb-1 ${scanResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                                            {scanResult.success ? 'Verified!' : 'Failed!'}
+                                        </h4>
+
+                                        {scanResult.success && scanResult.memberName && (
+                                            <p className="text-lg font-medium text-gray-800 mb-1">{scanResult.memberName}</p>
+                                        )}
+
+                                        <p className="text-sm text-gray-500">{scanResult.message}</p>
+                                    </div>
                                 </div>
                             )}
-                            <p className="text-xs text-gray-500 mt-4 text-center">
-                                Allow camera access to scan member QR codes.
-                            </p>
                         </div>
                     )}
                 </div>
-
-                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
-                    <button onClick={onClose} className="btn-secondary">Close</button>
-                </div>
             </div>
+
+            {/* Inline Styles for custom animations not in standard Tailwind */}
+            <style jsx>{`
+                @keyframes scan {
+                    0% { top: 10%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 90%; opacity: 0; }
+                }
+                .animate-scale-in {
+                    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                @keyframes scaleIn {
+                    from { transform: scale(0.8); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
+            `}</style>
         </div>
     );
 };
