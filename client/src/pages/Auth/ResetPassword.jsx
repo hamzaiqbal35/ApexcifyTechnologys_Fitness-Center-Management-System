@@ -1,97 +1,84 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 
-const Signup = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+const ResetPassword = () => {
+    const { resetToken } = useParams();
+    const navigate = useNavigate();
+
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [message, setMessage] = useState('');
     const [error, setError] = useState('');
-    const { signup } = useAuth();
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setMessage('');
         setError('');
 
         if (password !== confirmPassword) {
-            return setError("Passwords do not match");
+            setError("Passwords don't match");
+            return;
         }
 
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters");
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            await signup({ name, email, password });
-            navigate('/dashboard');
+            await api.put(`/auth/resetpassword/${resetToken}`, { password });
+            setMessage('Password updated successfully! Redirecting to login...');
+
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create an account');
+            setError(err.response?.data?.message || 'Failed to reset password');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 animate-fade-in">
-                <div className="text-center">
-                    <Link to="/" className="font-display font-bold text-4xl text-primary-600">FitTrack</Link>
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                            Sign in
-                        </Link>
-                    </p>
+        <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="flex justify-center">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30">
+                        FT
+                    </div>
                 </div>
+                <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+                    Set new password
+                </h2>
+                <p className="mt-2 text-center text-sm text-gray-600">
+                    Please enter your new password below.
+                </p>
+            </div>
 
-                <div className="card">
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="bg-white py-8 px-4 shadow-xl shadow-gray-200/50 sm:rounded-xl sm:px-10 border border-gray-100">
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                        {error && (
-                            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
-                                {error}
-                            </div>
-                        )}
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-                            <div className="mt-1">
-                                <input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    required
-                                    className="input-field"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
-                            <div className="mt-1">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    className="input-field"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                New Password
+                            </label>
                             <div className="mt-1 relative">
                                 <input
                                     id="password"
                                     name="password"
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    className="input-field pr-10"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    className="input-field pr-10"
+                                    placeholder="••••••••"
+                                    minLength={6}
                                 />
                                 <button
                                     type="button"
@@ -113,16 +100,20 @@ const Signup = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                                Confirm New Password
+                            </label>
                             <div className="mt-1 relative">
                                 <input
                                     id="confirmPassword"
                                     name="confirmPassword"
                                     type={showConfirmPassword ? "text" : "password"}
                                     required
-                                    className="input-field pr-10"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="input-field pr-10"
+                                    placeholder="••••••••"
+                                    minLength={6}
                                 />
                                 <button
                                     type="button"
@@ -143,12 +134,43 @@ const Signup = () => {
                             </div>
                         </div>
 
+                        {message && (
+                            <div className="rounded-md bg-green-50 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-green-800">{message}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="rounded-md bg-red-50 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-red-800">{error}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center btn-primary"
+                                disabled={loading}
+                                className="btn-primary w-full flex justify-center py-2.5"
                             >
-                                Sign up
+                                {loading ? 'Resetting...' : 'Set New Password'}
                             </button>
                         </div>
                     </form>
@@ -158,4 +180,4 @@ const Signup = () => {
     );
 };
 
-export default Signup;
+export default ResetPassword;

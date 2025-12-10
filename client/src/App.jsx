@@ -4,6 +4,8 @@ import { useAuth } from './contexts/AuthContext';
 import LandingPage from './pages/LandingModel';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
 
 import Dashboard from './pages/Dashboard';
 
@@ -20,6 +22,8 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 
             {/* Protected Routes */}
             <Route path="/dashboard/*" element={

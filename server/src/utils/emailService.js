@@ -183,6 +183,23 @@ const sendBookingCancellation = async (booking, classData, userData) => {
     await sendEmail(userData.email, subject, html);
 };
 
+/**
+ * Send password reset email
+ */
+const sendPasswordResetEmail = async (email, resetUrl) => {
+    const subject = 'Password Reset Request - FitTrack';
+    const html = `
+        <h2>Password Reset Request</h2>
+        <p>You requested a password reset. Please go to this link to reset your password:</p>
+        <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
+        <p>This link expires in 10 minutes.</p>
+        <p>If you did not request this email, please ignore it.</p>
+        <p>- FitTrack Team</p>
+    `;
+
+    await sendEmail(email, subject, html);
+};
+
 module.exports = {
     sendEmail,
     sendBookingConfirmation,
@@ -191,4 +208,5 @@ module.exports = {
     sendSubscriptionConfirmation,
     sendPaymentFailure,
     sendBookingCancellation,
+    sendPasswordResetEmail,
 };
