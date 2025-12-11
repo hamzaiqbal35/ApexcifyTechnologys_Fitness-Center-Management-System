@@ -50,106 +50,140 @@ const LandingPage = () => {
             <LandingNavbar />
 
             {/* Bento Grid Hero Section */}
-            <main className="relative pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen flex flex-col justify-center">
-                <div className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-4 grid-rows-4 md:grid-rows-3 gap-4 h-full min-h-[800px] md:min-h-[600px]">
+            <main className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8 bg-gray-50 flex flex-col justify-center overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary-200/30 rounded-full blur-3xl -z-10 opacity-50 pointer-events-none"></div>
 
-                    {/* Block 1: Main Content (Large, Dark) */}
-                    <div className="md:col-span-2 md:row-span-3 bg-gray-900 rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden group">
-                        {/* Background Decoration */}
-                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-primary-600 blur-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
-                        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-blue-600 blur-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
+                <div className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-4 grid-rows-auto md:grid-rows-3 gap-6 min-h-[800px]">
+
+                    {/* Block 1: Main Content (Large, Dark, Call to Action) */}
+                    <div className="md:col-span-2 md:row-span-2 bg-gray-900 rounded-[2rem] p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden group shadow-2xl shadow-gray-200/50">
+                        {/* Abstract Shapes */}
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
 
                         <div className="relative z-10">
-                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-sm font-medium text-white mb-6 border border-white/10">
-                                <span className="w-2 h-2 rounded-full bg-primary-500 mr-2 animate-pulse"></span>
-                                New Classes Available
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-medium text-primary-200 mb-8">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+                                </span>
+                                Now offering Online Coaching
                             </div>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold text-white leading-tight mb-6">
-                                Transform Your Body, <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-blue-400">Transform Your Life</span>
+                            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.1] mb-6 tracking-tight">
+                                Redefine <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-primary-200 to-white">Your Limits.</span>
                             </h1>
-                            <p className="text-lg text-gray-400 max-w-md">
-                                Expert trainers, personalized plans, and a community that drives you forward. Join the revolution today.
+                            <p className="text-lg text-gray-400 max-w-md leading-relaxed">
+                                Experience fitness reimagine with world-class trainers and state-of-the-art facilities. Your journey to greatness starts here.
                             </p>
                         </div>
 
-                        <div className="relative z-10 mt-8 flex flex-col sm:flex-row gap-4">
+                        <div className="relative z-10 mt-10 grid grid-cols-2 gap-4">
                             {user ? (
-                                <Link to="/dashboard" className="btn-primary w-full sm:w-auto justify-center text-center py-4 text-lg shadow-lg shadow-primary-500/30">
-                                    Go to Dashboard
+                                <Link to="/dashboard" className="btn-primary w-full py-4 text-center justify-center text-lg rounded-xl shadow-lg shadow-primary-500/25 border border-primary-400 hover:scale-[1.02] active:scale-95 transition-all">
+                                    Dashboard
                                 </Link>
                             ) : (
                                 <>
-                                    <Link to="/signup" className="btn-primary w-full sm:w-auto justify-center text-center py-4 text-lg shadow-lg shadow-primary-500/30">
-                                        Start Journey
+                                    <Link to="/signup" className="btn-primary w-full py-4 text-center justify-center text-lg rounded-xl shadow-lg shadow-primary-500/25 border border-primary-400 hover:scale-[1.02] active:scale-95 transition-all">
+                                        Join Now
                                     </Link>
-                                    <a href="#features" className="px-6 py-4 rounded-xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all border border-white/10 text-center w-full sm:w-auto backdrop-blur-sm">
-                                        Explore Features
-                                    </a>
+                                    <Link to="/login" className="px-6 py-4 rounded-xl bg-white/5 text-white font-semibold border border-white/10 hover:bg-white/10 text-center backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-95">
+                                        Sign In
+                                    </Link>
                                 </>
                             )}
                         </div>
                     </div>
 
-                    {/* Block 2: Hero Image 1 (Vertical on right top) */}
-                    <div className="md:col-span-1 md:row-span-2 relative rounded-3xl overflow-hidden group">
+                    {/* Block 2: Tall Visual (Right Side) */}
+                    <div className="md:col-span-1 md:row-span-2 relative rounded-[2rem] overflow-hidden group shadow-xl shadow-gray-200/50">
                         <img
                             src={hero1}
-                            alt="Training Session"
+                            alt="Athlete"
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                            <p className="text-white font-bold text-lg">High Intensity</p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                            <span className="text-primary-400 font-bold tracking-wider text-xs uppercase mb-2">Strength</span>
+                            <h3 className="text-white text-2xl font-display font-bold leading-tight">Forged in Iron</h3>
                         </div>
                     </div>
 
-                    {/* Block 3: Stats Block (Small) */}
-                    <div className="md:col-span-1 md:row-span-1 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center group hover:border-primary-200 transition-colors">
-                        <div className="text-4xl font-display font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">500+</div>
-                        <p className="text-sm text-gray-500 font-medium">Active Members</p>
-                    </div>
-
-                    {/* Block 4: Feature Block (Small) */}
-                    <div className="md:col-span-1 md:row-span-1 bg-primary-600 rounded-3xl p-6 flex flex-col justify-between text-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-150"></div>
-                        <svg className="w-8 h-8 text-white mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        <div>
-                            <p className="text-2xl font-bold">15+</p>
-                            <p className="text-primary-100 text-sm">Expert Trainers</p>
+                    {/* Block 3: Stats (Top Right) */}
+                    <div className="md:col-span-1 md:row-span-1 bg-white rounded-[2rem] p-8 border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col justify-center items-center text-center group hover:border-primary-100 transition-colors relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-gray-50 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-500"></div>
+                        <div className="relative z-10">
+                            <div className="text-5xl font-display font-bold text-gray-900 mb-2 tracking-tighter">5k+</div>
+                            <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">Happy Members</p>
                         </div>
                     </div>
 
-                    {/* Block 5: Hero Image 2 (Small Square) */}
-                    <div className="md:col-span-1 md:row-span-1 relative rounded-3xl overflow-hidden group">
+                    {/* Block 4: Feature (Middle Right) */}
+                    <div className="md:col-span-1 md:row-span-1 bg-primary-600 rounded-[2rem] p-8 flex flex-col justify-between text-white relative overflow-hidden group shadow-xl shadow-primary-500/30">
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16 transition-transform duration-500 group-hover:scale-150 blur-2xl"></div>
+                        <div className="flex justify-between items-start z-10">
+                            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl">
+                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <span className="bg-white/20 px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm">24/7</span>
+                        </div>
+                        <div className="z-10">
+                            <p className="text-3xl font-display font-bold mb-1">Open</p>
+                            <p className="text-primary-100 text-sm">Access Anytime</p>
+                        </div>
+                    </div>
+
+                    {/* Block 5: Bottom Visual 1 (Bottom Left) */}
+                    <div className="md:col-span-1 md:row-span-1 relative rounded-[2rem] overflow-hidden group shadow-lg">
                         <img
                             src={hero2}
-                            alt="Yoga Class"
+                            alt="Yoga"
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                            <div>
-                                <h3 className="text-white text-lg font-bold mb-1">Muscle Building</h3>
-                                <p className="text-gray-200 text-xs">Push Limits</p>
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                        <div className="absolute bottom-6 left-6">
+                            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-white font-medium text-sm">
+                                Yoga & Mind
                             </div>
                         </div>
                     </div>
 
-                    {/* Block 6: Hero Image 3 (Small Square) */}
-                    <div className="md:col-span-1 md:row-span-1 relative rounded-3xl overflow-hidden group">
+                    {/* Block 6: Bottom Visual 2 (Bottom Middle) */}
+                    <div className="md:col-span-1 md:row-span-1 relative rounded-[2rem] overflow-hidden group shadow-lg">
                         <img
                             src={hero3}
-                            alt="Meditation"
+                            alt="Cardio"
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                            <div>
-                                <h3 className="text-white text-lg font-bold mb-1">Yoga & Cardio</h3>
-                                <p className="text-gray-200 text-xs">Find Balance</p>
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                        <div className="absolute bottom-6 left-6">
+                            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-white font-medium text-sm">
+                                HIIT & Cardio
                             </div>
                         </div>
                     </div>
+
+                    {/* Block 7: Community/Extra (Bottom Right Wide) */}
+                    <div className="md:col-span-2 md:row-span-1 bg-white rounded-[2rem] p-8 border border-gray-100 flex items-center justify-between relative overflow-hidden group shadow-xl shadow-gray-200/50 hover:border-primary-200 transition-all">
+                        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none"></div>
+                        <div className="relative z-10 max-w-sm">
+                            <h3 className="text-2xl font-display font-bold text-gray-900 mb-2">Join the Community</h3>
+                            <p className="text-gray-500 text-sm">Be part of a movement that celebrates every milestone.</p>
+                        </div>
+                        <div className="relative z-10 flex -space-x-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 overflow-hidden shadow-sm">
+                                    <img src={`https://i.pravatar.cc/150?img=${i + 10}`} alt="Member" className="w-full h-full object-cover" />
+                                </div>
+                            ))}
+                            <div className="w-12 h-12 rounded-full border-4 border-white bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-600 shadow-sm">
+                                +2k
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </main>
 
