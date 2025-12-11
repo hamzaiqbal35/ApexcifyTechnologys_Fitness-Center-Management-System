@@ -9,6 +9,8 @@ import ResetPassword from './pages/Auth/ResetPassword';
 
 import Dashboard from './pages/Dashboard';
 
+import ContactUs from './pages/ContactUs';
+
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
     if (loading) return <div>Loading...</div>;
@@ -22,6 +24,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/contact" element={<ContactUs />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 

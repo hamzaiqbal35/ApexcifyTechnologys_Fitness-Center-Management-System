@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import LandingNavbar from '../components/LandingNavbar';
 import hero1 from '../assets/hero1.png';
 import hero2 from '../assets/hero2.png';
 import hero3 from '../assets/hero3.png';
@@ -14,59 +15,7 @@ const LandingPage = () => {
         <div className="min-h-screen flex flex-col bg-white">
             {/* Navbar */}
             {/* Navbar */}
-            <nav className="fixed w-full z-50 top-0 transition-all duration-300">
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-                    <div className="flex justify-between items-center h-20">
-                        {/* Logo */}
-                        <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                            <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-xl">F</div>
-                            <span className="font-display font-bold text-2xl text-gray-900 tracking-tight">FitTrack</span>
-                        </div>
-
-                        {/* Desktop Menu */}
-                        <div className="hidden md:flex space-x-8">
-                            {['Features', 'Classes', 'Pricing'].map((item) => (
-                                <a
-                                    key={item}
-                                    href={`#${item.toLowerCase()}`}
-                                    className="text-gray-600 hover:text-primary-600 font-medium transition-colors relative group py-2"
-                                >
-                                    {item}
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full"></span>
-                                </a>
-                            ))}
-                        </div>
-
-                        {/* Auth Buttons */}
-                        <div className="flex items-center space-x-4">
-                            {user ? (
-                                <Link
-                                    to="/dashboard"
-                                    className="btn-primary shadow-lg shadow-primary-500/20 px-6 py-2.5 rounded-full text-base"
-                                >
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        to="/login"
-                                        className="text-gray-600 font-medium hover:text-gray-900 transition-colors px-4 py-2"
-                                    >
-                                        Log in
-                                    </Link>
-                                    <Link
-                                        to="/signup"
-                                        className="btn-primary shadow-lg shadow-primary-500/20 px-6 py-2.5 rounded-full text-base transition-transform hover:scale-105"
-                                    >
-                                        Get Started
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            <LandingNavbar />
 
             {/* Bento Grid Hero Section */}
             <main className="relative pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen flex flex-col justify-center">
@@ -222,7 +171,8 @@ const LandingPage = () => {
             {/* Footer */}
             <footer className="bg-white border-t border-gray-100">
                 <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-                    <div className="mt-8 md:order-1 md:mt-0">
+                    <div className="mt-8 md:order-1 md:mt-0 flex flex-col md:flex-row items-center gap-4">
+                        <Link to="/contact" className="text-sm text-gray-500 hover:text-primary-600">Contact Us</Link>
                         <p className="text-center text-xs leading-5 text-gray-500">
                             &copy; 2024 FitTrack, Inc. All rights reserved.
                         </p>

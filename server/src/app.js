@@ -30,6 +30,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/workout-plans', require('./routes/workoutPlanRoutes'));
 app.use('/api/diet-plans', require('./routes/dietPlanRoutes'));
+app.use('/api/contact', require('./routes/contactRoutes'));
 
 
 
