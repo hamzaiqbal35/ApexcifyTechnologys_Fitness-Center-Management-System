@@ -37,7 +37,7 @@ const LandingNavbar = () => {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex space-x-8">
-                        {['Features', 'Classes', 'Pricing'].map((item) => (
+                        {['Features', 'Classes', 'Prices'].map((item) => (
                             <a
                                 key={item}
                                 href={isHomePage ? `#${item.toLowerCase()}` : `/#${item.toLowerCase()}`}

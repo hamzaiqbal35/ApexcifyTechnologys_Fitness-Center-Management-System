@@ -6,8 +6,40 @@ import hero1 from '../assets/hero1.png';
 import hero2 from '../assets/hero2.png';
 import hero3 from '../assets/hero3.png';
 
+import api from '../services/api';
+
 const LandingPage = () => {
     const { user } = useAuth();
+    const [classes, setClasses] = useState([]);
+    const [plans, setPlans] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [classesRes, plansRes] = await Promise.all([
+                    api.get('/classes'),
+                    api.get('/subscription-plans')
+                ]);
+                // Filter only unique class names
+                const uniqueClasses = [];
+                const seenNames = new Set();
+                classesRes.data.forEach(cls => {
+                    if (!seenNames.has(cls.name)) {
+                        seenNames.add(cls.name);
+                        uniqueClasses.push(cls);
+                    }
+                });
+                setClasses(uniqueClasses);
+                setPlans(plansRes.data);
+            } catch (error) {
+                console.error("Failed to fetch landing data", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
 
 
@@ -168,13 +200,133 @@ const LandingPage = () => {
                 </div>
             </div>
 
+            {/* Classes Section */}
+            <div id="classes" className="py-24 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-primary-600 font-semibold tracking-wide uppercase">Our Courses</h2>
+                        <p className="mt-2 text-3xl font-display font-bold text-gray-900 sm:text-4xl">Find Your Perfect Course</p>
+                        <p className="mt-4 text-xl text-gray-500">Join our expert-led classes designed for all fitness levels.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {loading ? (
+                            <div className="col-span-full text-center text-gray-500">Loading classes...</div>
+                        ) : classes.length > 0 ? (
+                            classes.slice(0, 6).map((cls) => (
+                                <div key={cls._id} className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <div className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                                                {cls.intensity || 'All Levels'}
+                                            </div>
+                                            <span className="text-sm text-gray-500">{cls.duration} min</span>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{cls.name}</h3>
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{cls.description}</p>
+
+                                        <div className="flex items-center text-sm text-gray-500 mb-4">
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                            <span className="truncate">Trainer: {cls.trainerId?.name || 'Expert Trainer'}</span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+                                            <span className="text-sm font-medium text-gray-900">
+                                                {new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            {user ? (
+                                                <Link to="/dashboard/classes" className="text-primary-600 font-medium text-sm hover:text-primary-700">Book Now →</Link>
+                                            ) : (
+                                                <Link to="/login" className="text-primary-600 font-medium text-sm hover:text-primary-700">Login to Book →</Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center text-gray-500">No classes scheduled at the moment.</div>
+                        )}
+                    </div>
+
+                    <div className="mt-12 text-center">
+                        <Link to={user ? "/dashboard/classes" : "/login"} className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            View Full Schedule
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Prices Section */}
+            <div id="prices" className="py-24 bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-primary-600 font-semibold tracking-wide uppercase">Membership Plans</h2>
+                        <p className="mt-2 text-3xl font-display font-bold text-gray-900 sm:text-4xl">Choose Your Plan</p>
+                        <p className="mt-4 text-xl text-gray-500">Flexible options to fit your lifestyle and goals.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        {loading ? (
+                            <div className="col-span-full text-center text-gray-500">Loading plans...</div>
+                        ) : plans.length > 0 ? (
+                            plans.map((plan) => (
+                                <div key={plan._id} className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative flex flex-col">
+                                    {plan.isPopular && (
+                                        <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                                            POPULAR
+                                        </div>
+                                    )}
+                                    <div className="p-8 flex-1">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                                        <div className="flex items-baseline mb-6">
+                                            <span className="text-4xl font-extrabold text-gray-900">Rs. {plan.price}</span>
+                                            <span className="ml-2 text-gray-500">/{plan.interval}</span>
+                                        </div>
+                                        <p className="text-gray-600 mb-6 text-sm">{plan.description}</p>
+
+                                        <ul className="space-y-4 mb-8">
+                                            {plan.features?.map((feature, idx) => (
+                                                <li key={idx} className="flex items-start">
+                                                    <svg className="flex-shrink-0 w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                                    <span className="text-sm text-gray-600">{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="p-8 bg-gray-50 border-t border-gray-100">
+                                        {user ? (
+                                            <Link
+                                                to="/dashboard/subscription"
+                                                className="block w-full text-center btn-primary py-3 rounded-xl shadow-lg shadow-primary-500/20"
+                                            >
+                                                Choose {plan.name}
+                                            </Link>
+                                        ) : (
+                                            <Link
+                                                to="/signup"
+                                                className="block w-full text-center btn-primary py-3 rounded-xl shadow-lg shadow-primary-500/20"
+                                            >
+                                                Get Started
+                                            </Link>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center text-gray-500">No plans available at the moment.</div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Footer */}
             <footer className="bg-white border-t border-gray-100">
                 <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
                     <div className="mt-8 md:order-1 md:mt-0 flex flex-col md:flex-row items-center gap-4">
                         <Link to="/contact" className="text-sm text-gray-500 hover:text-primary-600">Contact Us</Link>
                         <p className="text-center text-xs leading-5 text-gray-500">
-                            &copy; 2024 FitTrack, Inc. All rights reserved.
+                            &copy; 2025 FitTrack, Inc. All rights reserved.
                         </p>
                     </div>
                 </div>
