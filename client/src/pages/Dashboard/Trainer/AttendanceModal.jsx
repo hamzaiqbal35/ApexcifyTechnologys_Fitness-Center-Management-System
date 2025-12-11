@@ -24,7 +24,7 @@ const AttendanceModal = ({ classId, onClose, classDetails }) => {
                         const scanner = new Html5QrcodeScanner(
                             "reader",
                             {
-                                fps: 15,
+                                fps: 30,
                                 qrbox: { width: 280, height: 280 }, // Layout fix
                                 aspectRatio: 1.0,
                                 disableFlip: true,
