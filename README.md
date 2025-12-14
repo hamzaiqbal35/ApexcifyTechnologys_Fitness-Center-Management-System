@@ -123,7 +123,7 @@ Follow these steps to set up the project locally.
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/hamzaiqbal35/ApexcifyTechnologys_Fitness-Center-Management-System.git
+    git clone https://github.com/hamzaiqbal35/FitTrack_Fitness-Center-Management-System.git
     cd FitTrack
     ```
 
